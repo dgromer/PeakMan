@@ -32,3 +32,10 @@ FORMS    += mainwindow.ui \
 
 RESOURCES += \
     images.qrc
+
+win32 {
+    RC_ICONS = resources/logo.ico
+} else:macx {
+    ICON =
+}
+

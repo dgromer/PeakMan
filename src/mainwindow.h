@@ -38,6 +38,7 @@ public:
     ~MainWindow();
 
 private slots:
+    // Functions for plot interaction
     void horzScrollBarChanged(int value);
     void xAxisChanged(QCPRange range);
     void yAxisChanged(QCPRange range);
@@ -47,40 +48,40 @@ private slots:
     void closeCurrentFile();
     void saveInterbeatIntervals();
 
-    void peakdet();
+    void peakdet(); // The peak detection algorithm
     void insertPeakAtPos(QPoint position); // Used for inserting a peak at clicked position
     void insertPeakAtPoint(double position); // Used for inserting a peak at a specific time
-    void deletePeak(QCPAbstractItem *peak);
-    void deletePeaks(QList<QCPAbstractItem*> peaksToDelete);
+    void deletePeak(QCPAbstractItem *peak); // Delete a single peak
+    void deletePeaks(QList<QCPAbstractItem*> peaksToDelete); // Delete a list of peaks
 
     void setupIbiPlot();
-    void jumpToSelection();
-    void artifactDetection();
-    void insertMissingPeaks();
+    void jumpToSelection(); // Highlight a selected interbeat interval in ecg view
+    void artifactDetection(); // Search for artifacts in sequence of interbeat intervals
+    void insertMissingPeaks(); // Subdivides an interbeat interval into shorter intervals
 
 private:
     Ui::MainWindow *ui;
 
     QString openFileName;
-    void execOpenFileDialog();
-    void openEcgFile();
+    void execOpenFileDialog(); // Display a dialog for file opening
+    void openEcgFile(); // Read a text file with ecg data
     void openPeaksFile();
     void openIbiFile();
-    void dragEnterEvent(QDragEnterEvent *event);
-    void dropEvent(QDropEvent *event);
+    void dragEnterEvent(QDragEnterEvent *event); // Allows to drag something into the application
+    void dropEvent(QDropEvent *event); // Checks the dropped file and opens it
 
-    int sampleRate;
-    QLabel *sampleRateLabel;
-    void updateSampleRateLabel();
+    int sampleRate; // Stores the samplerate in hertz
+    QLabel *sampleRateLabel; // Used for displaying the samplerate in the top right corner of the gui
+    void updateSampleRateLabel(); // Updates the samplerate label
 
-    QVector<double> ecg_x;
-    QVector<double> ecg_y;
+    QVector<double> ecg_x; // x-axis values for ecg_y (time in seconds)
+    QVector<double> ecg_y; // Stores the actual ecg signal
 
-    QLinkedList<QCPItemStraightLine*> peaks;
-    QCPItemStraightLine* insertNewPeak(double position);
+    QLinkedList<QCPItemStraightLine*> peaks; // List of detected peaks
+    QCPItemStraightLine* insertNewPeak(double position); // Insert a new peak at 'position' (time in seconds)
 
-    QVector<double> ibi_x;
-    QVector<double> ibi_y;
+    QVector<double> ibi_x; // x-axis values for ibi_y (1, 2, ...)
+    QVector<double> ibi_y; // Stores interbeat intervals
 
     QVector<double> hist_x;
     QVector<double> hist_y;
@@ -91,8 +92,8 @@ private:
     QVector<double> artifacts_y;
 
     void closeEvent(QCloseEvent *event);
-    void saveSettings();
-    void loadSettings();
+    void saveSettings(); // Save settings when quitting
+    void loadSettings(); // Load settings at startup
 };
 
 #endif // MAINWINDOW_H

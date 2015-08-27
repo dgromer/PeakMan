@@ -1,3 +1,4 @@
 /build*
 *.bak
 src/peakman.pro.user
+*.autosave

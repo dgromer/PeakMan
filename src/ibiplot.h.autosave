@@ -17,14 +17,32 @@
  * along with PeakMan.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mainwindow.h"
-#include <QApplication>
+#ifndef IBIPLOT_H
+#define IBIPLOT_H
 
-int main(int argc, char *argv[])
+#include "qcustomplot.h"
+
+class IBIPlot : public QCustomPlot
 {
-    QApplication a(argc, argv);
-    MainWindow w;
-    w.show();
+    Q_OBJECT
 
-    return a.exec();
-}
+public:
+    explicit IBIPlot(QWidget *parent);
+    ~IBIPlot();
+
+    void setTracer();
+    void unsetTracer();
+    double getSelectionGraphKey();
+    double getSelectionValue();
+
+signals:
+    void ibiSelected(bool);
+
+private slots:
+    void mousePressEvent(QMouseEvent *event);
+
+private:
+    QCPItemTracer *selection;
+};
+
+#endif // IBIPLOT_H

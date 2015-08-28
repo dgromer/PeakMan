@@ -29,6 +29,8 @@ class HistPlot : public QCustomPlot
 public:
     explicit HistPlot(QWidget *parent);
     ~HistPlot();
+
+    void plot(QVector<double> x, QVector<double> y, double max_x, double max_y);
 };
 
 #endif // HISTPLOT_H

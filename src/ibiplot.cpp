@@ -79,6 +79,41 @@ double IBIPlot::getSelectionValue()
     return selection->position->value();
 }
 
+void IBIPlot::plot(QVector<double> x, QVector<double> y)
+{
+    addGraph();
+    graph(0)->setData(x, y);
+    graph(0)->setPen(QColor(77, 77, 76));
+
+    // Find largest interbeat interval and set plot view accordingly
+    xAxis->setRange(-5, graph(0)->data()->size() + 5);
+    yAxis->setRange(0, getMaxIbi() + 200);
+
+    replot();
+}
+
+void IBIPlot::update(QVector<double> x, QVector<double> y)
+{
+    graph(0)->setData(x, y);
+    yAxis->setRange(0, getMaxIbi() + 200);
+
+    replot();
+}
+
+double IBIPlot::getMaxIbi()
+{
+    double maxIbi = 0;
+
+    QList<QCPData> data = graph(0)->data()->values();
+
+    for (int i = 0; i < data.size(); i++)
+    {
+        maxIbi = qMax(maxIbi, data[i].value);
+    }
+
+    return maxIbi;
+}
+
 // Set tracer on mouse click
 void IBIPlot::mousePressEvent(QMouseEvent *event)
 {

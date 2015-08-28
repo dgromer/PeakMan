@@ -347,50 +347,19 @@ void MainWindow::setupIbiPlot()
 {
     if (peaks.isEmpty()) return;
 
-    if (!ibi_y.empty())
-    {
-        ibi_x.clear();
-        ibi_y.clear();
+    // Remove old interbeat intervals if there are any present
+    if (!ibi_y.empty()) clearInterbeatIntervals();
 
-        if (!artifacts_y.empty())
-        {
-            artifacts_x.clear();
-            artifacts_y.clear();
-            ui->ibiPlot->removeGraph(1);
-        }
-    }
+    // Calculate the new interbeat intervals
+    calculateInterbeatIntervals();
 
-    double lastPeakPosition = peaks.first()->point1->key() * 1000;
-    int i = 0;
-    double maxIbi = 0;
-
-    // Compute interbeat intervals in msec
-    foreach (QCPItemStraightLine *peak, peaks)
-    {
-        ibi_x << (double) i++;
-        ibi_y << peak->point1->key() * 1000 - lastPeakPosition;
-
-        maxIbi = qMax(maxIbi, ibi_y.last());
-
-        lastPeakPosition += ibi_y.last();
-    }
-
-    // First element is zero
-    ibi_x.removeFirst();
-    ibi_y.removeFirst();
-
-    ui->ibiPlot->addGraph();
-    ui->ibiPlot->graph(0)->setData(ibi_x, ibi_y);
-    ui->ibiPlot->graph(0)->setPen(QColor(77, 77, 76));
-    ui->ibiPlot->xAxis->setRange(-5, ibi_x.size() + 5);
-    ui->ibiPlot->yAxis->setRange(0, maxIbi + 200);
-
-    ui->ibiPlot->replot();
+    // Plot interbeat intervals
+    ui->ibiPlot->plot(ibi_x, ibi_y);
 
     // Enable selection in ibi plot
     ui->ibiPlot->setTracer();
 
-    setupHistPlot(maxIbi);
+    setupHistPlot();
 }
 
 void MainWindow::jumpToSelection()
@@ -477,6 +446,11 @@ void MainWindow::insertMissingPeaks()
     }
 
     ui->ecgPlot->replot();
+
+    // Remove old interbeat intervals if there are any present
+    if (!ibi_y.empty()) clearInterbeatIntervals();
+    calculateInterbeatIntervals();
+    ui->ibiPlot->update(ibi_x, ibi_y);
 }
 
 void MainWindow::aboutPeakMan()
@@ -485,7 +459,7 @@ void MainWindow::aboutPeakMan()
                        "<p><b>PeakMan</b><br>Version 0.3.0</p>"
                        "<p>Copyright (C) 2014-2015 Daniel Gromer</p>"
                        "<p><a href='https://github.com/dgromer/PeakMan'>https://github.com/dgromer/PeakMan</a></p>"
-                       "<p>This program is licensed to you under the terms of<br>version 3 of the GNU <a href='http://www.gnu.org/licenses/gpl-3.0.txt'>General Public License</a>.");
+                       "<p>This program is licensed to you under the terms of version 3 of the GNU <a href='http://www.gnu.org/licenses/gpl-3.0.txt'>General Public License</a>.");
 }
 
 void MainWindow::execOpenFileDialog()
@@ -634,8 +608,42 @@ void MainWindow::clearPeaks()
     peaks.clear();
 }
 
-void MainWindow::setupHistPlot(double maxIbiValue)
+void MainWindow::clearInterbeatIntervals()
 {
+    ibi_x.clear();
+    ibi_y.clear();
+
+    if (!artifacts_y.empty())
+    {
+        artifacts_x.clear();
+        artifacts_y.clear();
+        ui->ibiPlot->removeGraph(1);
+    }
+}
+
+void MainWindow::calculateInterbeatIntervals()
+{
+    double lastPeakPosition = peaks.first()->point1->key() * 1000;
+    int i = 0;
+
+    // Compute interbeat intervals in msec
+    foreach (QCPItemStraightLine *peak, peaks)
+    {
+        ibi_x << (double) i++;
+        ibi_y << peak->point1->key() * 1000 - lastPeakPosition;
+
+        lastPeakPosition += ibi_y.last();
+    }
+
+    // First element is zero
+    ibi_x.removeFirst();
+    ibi_y.removeFirst();
+}
+
+void MainWindow::setupHistPlot()
+{
+    double maxIbiValue = ui->ibiPlot->getMaxIbi();
+
     hist_y = QVector<double>(qFloor(maxIbiValue / 10) + 1);
     hist_x = QVector<double>(hist_y.size());
 
@@ -652,22 +660,7 @@ void MainWindow::setupHistPlot(double maxIbiValue)
         maxHistValue = qMax(maxHistValue, hist_y[i]);
     }
 
-    if (ui->histPlot->plottableCount() > 0)
-    {
-        ui->histPlot->removePlottable(0);
-    }
-
-    QCPBars *bars = new QCPBars(ui->histPlot->xAxis, ui->histPlot->yAxis);
-    ui->histPlot->addPlottable(bars);
-    bars->setWidth(10);
-    bars->setData(hist_x, hist_y);
-    bars->setPen(QPen(Qt::black));
-    bars->setBrush(QColor(77, 77, 76));
-
-    ui->histPlot->xAxis->setRange(0, maxIbiValue + 20);
-    ui->histPlot->yAxis->setRange(0, maxHistValue + 5);
-
-    ui->histPlot->replot();
+    ui->histPlot->plot(hist_x, hist_y, maxIbiValue, maxHistValue);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

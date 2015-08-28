@@ -42,3 +42,23 @@ HistPlot::~HistPlot()
 
 }
 
+void HistPlot::plot(QVector<double> x, QVector<double> y, double max_x, double max_y)
+{
+    if (plottableCount() > 0)
+    {
+        removePlottable(0);
+    }
+
+    QCPBars *bars = new QCPBars(xAxis, yAxis);
+    addPlottable(bars);
+    bars->setWidth(10);
+    bars->setData(x, y);
+    bars->setPen(QPen(Qt::black));
+    bars->setBrush(QColor(77, 77, 76));
+
+    xAxis->setRange(0, max_x + 20);
+    yAxis->setRange(0, max_y + 5);
+
+    replot();
+}
+

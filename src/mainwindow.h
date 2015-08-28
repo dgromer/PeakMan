@@ -86,10 +86,13 @@ private:
     QVector<double> ibi_x; // x-axis values for ibi_y (1, 2, ...)
     QVector<double> ibi_y; // Stores interbeat intervals
 
+    void clearInterbeatIntervals();
+    void calculateInterbeatIntervals();
+
     QVector<double> hist_x;
     QVector<double> hist_y;
 
-    void setupHistPlot(double maxIbiValue);
+    void setupHistPlot();
 
     QVector<double> artifacts_x;
     QVector<double> artifacts_y;

@@ -34,6 +34,9 @@ public:
     void unsetTracer();
     double getSelectionGraphKey();
     double getSelectionValue();
+    void plot(QVector<double> x, QVector<double> y);
+    void update(QVector<double> x, QVector<double> y);
+    double getMaxIbi();
 
 signals:
     void ibiSelected(bool);

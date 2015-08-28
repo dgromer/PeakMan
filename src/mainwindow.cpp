@@ -34,6 +34,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->menuOpenFile, SIGNAL(triggered()), this, SLOT(getFileName()));
     connect(ui->menuCloseCurrentFile, SIGNAL(triggered()), this, SLOT(closeCurrentFile()));
     connect(ui->menuSaveInterbeatIntervals, SIGNAL(triggered()), this, SLOT(saveInterbeatIntervals()));
+    connect(ui->menuAboutPeakMan, SIGNAL(triggered(bool)), this, SLOT(aboutPeakMan()));
 
     // Configure scroll bars
     ui->horizontalScrollBar->setRange(1000, 2000);
@@ -133,13 +134,8 @@ void MainWindow::closeCurrentFile()
     // Remove ecg graph from plot
     ui->ecgPlot->removeGraph(0);
 
-    // Remove peaks from plot
-    foreach (QCPLayerable *l, ui->ecgPlot->layer("peaks")->children())
-    {
-        ui->ecgPlot->removeItem(qobject_cast<QCPAbstractItem*>(l));
-    }
-
-    peaks.clear();
+    // Remove all peaks
+    clearPeaks();
 
     ui->ecgPlot->replot();
 
@@ -210,13 +206,7 @@ void MainWindow::peakdet()
     // Check if there are already peaks
     if (!peaks.isEmpty())
     {
-        // Remove peaks from plot
-        foreach (QCPLayerable *l, ui->ecgPlot->layer("peaks")->children())
-        {
-            ui->ecgPlot->removeItem(qobject_cast<QCPAbstractItem*>(l));
-        }
-
-        peaks.clear();
+        clearPeaks();
     }
 
     // Peak detection algorithm starts here
@@ -489,6 +479,15 @@ void MainWindow::insertMissingPeaks()
     ui->ecgPlot->replot();
 }
 
+void MainWindow::aboutPeakMan()
+{
+    QMessageBox::about(this, "About PeakMan",
+                       "<p><b>PeakMan</b><br>Version 0.3.0</p>"
+                       "<p>Copyright (C) 2014-2015 Daniel Gromer</p>"
+                       "<p><a href='https://github.com/dgromer/PeakMan'>https://github.com/dgromer/PeakMan</a></p>"
+                       "<p>This program is licensed to you under the terms of<br>version 3 of the GNU <a href='http://www.gnu.org/licenses/gpl-3.0.txt'>General Public License</a>.");
+}
+
 void MainWindow::execOpenFileDialog()
 {
     OpenFileDialog dialog(this, openFileName, sampleRate);
@@ -622,6 +621,17 @@ QCPItemStraightLine* MainWindow::insertNewPeak(double position)
     newPeak->setSelectedPen(QPen(QBrush(QColor(234, 183, 0, 200)), 3));
 
     return newPeak;
+}
+
+void MainWindow::clearPeaks()
+{
+    // Remove peaks from plot
+    foreach (QCPLayerable *l, ui->ecgPlot->layer("peaks")->children())
+    {
+        ui->ecgPlot->removeItem(qobject_cast<QCPAbstractItem*>(l));
+    }
+
+    peaks.clear();
 }
 
 void MainWindow::setupHistPlot(double maxIbiValue)

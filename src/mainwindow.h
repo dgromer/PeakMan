@@ -59,6 +59,8 @@ private slots:
     void artifactDetection(); // Search for artifacts in sequence of interbeat intervals
     void insertMissingPeaks(); // Subdivides an interbeat interval into shorter intervals
 
+    void aboutPeakMan();
+
 private:
     Ui::MainWindow *ui;
 
@@ -79,6 +81,7 @@ private:
 
     QLinkedList<QCPItemStraightLine*> peaks; // List of detected peaks
     QCPItemStraightLine* insertNewPeak(double position); // Insert a new peak at 'position' (time in seconds)
+    void clearPeaks(); // Removes all peaks from the plot and clears the peaks vector
 
     QVector<double> ibi_x; // x-axis values for ibi_y (1, 2, ...)
     QVector<double> ibi_y; // Stores interbeat intervals

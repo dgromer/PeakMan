@@ -143,22 +143,17 @@ void MainWindow::closeCurrentFile()
     {
         ibi_x.clear();
         ibi_y.clear();
-        ui->ibiPlot->unsetTracer();
-        ui->ibiPlot->removeGraph(0);
+        ui->ibiPlot->clear();
 
         if (!artifacts_y.isEmpty())
         {
             artifacts_x.clear();
             artifacts_y.clear();
-            ui->ibiPlot->removeGraph(1);
         }
-
-        ui->ibiPlot->replot();
 
         hist_x.clear();
         hist_y.clear();
-        ui->histPlot->removePlottable(0);
-        ui->histPlot->replot();
+        ui->histPlot->clear();
     }
 
     // Disable buttons
@@ -356,6 +351,7 @@ void MainWindow::setupIbiPlot()
     // Plot interbeat intervals
     ui->ibiPlot->plot(ibi_x, ibi_y);
 
+    // TODO: maybe remove this from here and set/unset only inside ibiPlot
     // Enable selection in ibi plot
     ui->ibiPlot->setTracer();
 
@@ -407,11 +403,7 @@ void MainWindow::artifactDetection()
         }
     }
 
-    ui->ibiPlot->addGraph();
-    ui->ibiPlot->graph(1)->setData(artifacts_x, artifacts_y);
-    ui->ibiPlot->graph(1)->setPen(Qt::NoPen);
-    ui->ibiPlot->graph(1)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, QColor(200, 40, 41), QColor(200, 40, 41), 7));
-    ui->ibiPlot->replot();
+    ui->ibiPlot->plotArtifacts(artifacts_x, artifacts_y);
 }
 
 void MainWindow::insertMissingPeaks()
@@ -447,8 +439,7 @@ void MainWindow::insertMissingPeaks()
 
     ui->ecgPlot->replot();
 
-    // Remove old interbeat intervals if there are any present
-    if (!ibi_y.empty()) clearInterbeatIntervals();
+    clearInterbeatIntervals();
     calculateInterbeatIntervals();
     ui->ibiPlot->update(ibi_x, ibi_y);
 }
@@ -497,10 +488,7 @@ void MainWindow::openEcgFile()
     QFile file(openFileName);
 
     // Open file
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        return;
-    }
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
 
     QTextStream in(&file);
 
@@ -518,16 +506,13 @@ void MainWindow::openEcgFile()
         ecg_x << (double) i / sampleRate;
     }
 
-    // Plot data
-    ui->ecgPlot->addGraph();
-    ui->ecgPlot->graph(0)->setPen(QPen(QColor(77, 77, 76)));
-    ui->ecgPlot->graph(0)->setData(ecg_x, ecg_y);
-    ui->ecgPlot->graph(0)->setLayer("data");
-    ui->ecgPlot->replot();
+    // Plot ecg signal
+    ui->ecgPlot->plot(ecg_x, ecg_y);
 
     // Adjust size of horizontal scrollbar
     ui->horizontalScrollBar->setRange(0, ecg_x.last() * 100);
 
+    // Enable menu entries
     ui->detectPeaksButton->setEnabled(true);
     ui->menuCloseCurrentFile->setEnabled(true);
 
@@ -617,8 +602,9 @@ void MainWindow::clearInterbeatIntervals()
     {
         artifacts_x.clear();
         artifacts_y.clear();
-        ui->ibiPlot->removeGraph(1);
     }
+
+    ui->ibiPlot->clear();
 }
 
 void MainWindow::calculateInterbeatIntervals()

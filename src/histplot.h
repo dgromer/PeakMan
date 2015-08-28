@@ -31,6 +31,7 @@ public:
     ~HistPlot();
 
     void plot(QVector<double> x, QVector<double> y, double max_x, double max_y);
+    void clear();
 };
 
 #endif // HISTPLOT_H

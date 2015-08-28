@@ -30,6 +30,8 @@ class ECGPlot : public QCustomPlot
 public:
     explicit ECGPlot(QWidget *parent);
     ~ECGPlot();
+    void plot(QVector<double> x, QVector<double> y);
+    void clear();
     void showIbiHighlightRect(double x, double width);
 
 signals:

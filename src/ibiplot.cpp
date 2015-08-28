@@ -21,6 +21,10 @@
 
 IBIPlot::IBIPlot(QWidget *parent) : QCustomPlot(parent)
 {
+    // Initialize graphs
+    ibi = addGraph();
+    artifacts = addGraph();
+
     // Initialize tracer
     selection = new QCPItemTracer(this);
     selection->setStyle(QCPItemTracer::tsCircle);
@@ -59,7 +63,7 @@ IBIPlot::~IBIPlot()
 
 void IBIPlot::setTracer()
 {
-    selection->setGraph(graph(0));
+    selection->setGraph(ibi);
 }
 
 void IBIPlot::unsetTracer()
@@ -81,12 +85,11 @@ double IBIPlot::getSelectionValue()
 
 void IBIPlot::plot(QVector<double> x, QVector<double> y)
 {
-    addGraph();
-    graph(0)->setData(x, y);
-    graph(0)->setPen(QColor(77, 77, 76));
+    ibi->setData(x, y);
+    ibi->setPen(QColor(77, 77, 76));
 
     // Find largest interbeat interval and set plot view accordingly
-    xAxis->setRange(-5, graph(0)->data()->size() + 5);
+    xAxis->setRange(-5, ibi->data()->size() + 5);
     yAxis->setRange(0, getMaxIbi() + 200);
 
     replot();
@@ -94,17 +97,41 @@ void IBIPlot::plot(QVector<double> x, QVector<double> y)
 
 void IBIPlot::update(QVector<double> x, QVector<double> y)
 {
-    graph(0)->setData(x, y);
+    clearArtifacts();
+
+    ibi->setData(x, y);
     yAxis->setRange(0, getMaxIbi() + 200);
 
     replot();
+}
+
+void IBIPlot::clear()
+{
+    ibi->clearData();
+    clearArtifacts();
+    unsetTracer();
+
+    replot();
+}
+
+void IBIPlot::plotArtifacts(QVector<double> x, QVector<double> y)
+{
+    artifacts->setData(x, y);
+    artifacts->setPen(Qt::NoPen);
+    artifacts->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, QColor(200, 40, 41), QColor(200, 40, 41), 7));
+    replot();
+}
+
+void IBIPlot::clearArtifacts()
+{
+    artifacts->clearData();
 }
 
 double IBIPlot::getMaxIbi()
 {
     double maxIbi = 0;
 
-    QList<QCPData> data = graph(0)->data()->values();
+    QList<QCPData> data = ibi->data()->values();
 
     for (int i = 0; i < data.size(); i++)
     {

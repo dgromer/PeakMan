@@ -62,3 +62,9 @@ void HistPlot::plot(QVector<double> x, QVector<double> y, double max_x, double m
     replot();
 }
 
+void HistPlot::clear()
+{
+    removePlottable(0);
+    replot();
+}
+

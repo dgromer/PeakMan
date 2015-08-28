@@ -36,6 +36,9 @@ public:
     double getSelectionValue();
     void plot(QVector<double> x, QVector<double> y);
     void update(QVector<double> x, QVector<double> y);
+    void clear();
+    void plotArtifacts(QVector<double> x, QVector<double> y);
+    void clearArtifacts();
     double getMaxIbi();
 
 signals:
@@ -46,6 +49,8 @@ private slots:
 
 private:
     QCPItemTracer *selection;
+    QCPGraph *ibi;
+    QCPGraph *artifacts;
 };
 
 #endif // IBIPLOT_H

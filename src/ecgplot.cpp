@@ -73,6 +73,20 @@ ECGPlot::~ECGPlot()
 
 }
 
+void ECGPlot::plot(QVector<double> x, QVector<double> y)
+{
+    addGraph();
+    graph(0)->setPen(QPen(QColor(77, 77, 76)));
+    graph(0)->setData(x, y);
+    graph(0)->setLayer("data");
+    replot();
+}
+
+void ECGPlot::clear()
+{
+
+}
+
 void ECGPlot::showIbiHighlightRect(double x, double width)
 {
     highlightRectOpacity = 100;

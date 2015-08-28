@@ -268,7 +268,7 @@ void MainWindow::peakdet()
             if (curr > mn + delta)
             {
                 mx = curr;
-                mxpos = ecg_y[i];
+                mxpos = ecg_x[i];
                 lookformax = true;
             }
         }

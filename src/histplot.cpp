@@ -42,8 +42,44 @@ HistPlot::~HistPlot()
 
 }
 
-void HistPlot::plot(QVector<double> x, QVector<double> y, double max_x, double max_y)
+//void HistPlot::plot(QVector<double> x, QVector<double> y, double max_x, double max_y)
+//{
+//    if (plottableCount() > 0)
+//    {
+//        removePlottable(0);
+//    }
+
+//    QCPBars *bars = new QCPBars(xAxis, yAxis);
+//    addPlottable(bars);
+//    bars->setWidth(10);
+//    bars->setData(x, y);
+//    bars->setPen(QPen(Qt::black));
+//    bars->setBrush(QColor(77, 77, 76));
+
+//    xAxis->setRange(0, max_x + 20);
+//    yAxis->setRange(0, max_y + 5);
+
+//    replot();
+//}
+
+void HistPlot::plot(QVector<double> ibis, double maxIbi)
 {
+    QVector<double> hist_y = QVector<double>(qFloor(maxIbi / 10) + 1);
+    QVector<double> hist_x = QVector<double>(hist_y.size());
+
+    double maxHistValue = 0;
+
+    for (int i = 0; i < ibis.size(); i++)
+    {
+        hist_y[qFloor(ibis[i] / 10)]++;
+    }
+
+    for (int i = 0; i < hist_x.size(); i++)
+    {
+        hist_x[i] = i * 10 + 5;
+        maxHistValue = qMax(maxHistValue, hist_y[i]);
+    }
+
     if (plottableCount() > 0)
     {
         removePlottable(0);
@@ -52,12 +88,12 @@ void HistPlot::plot(QVector<double> x, QVector<double> y, double max_x, double m
     QCPBars *bars = new QCPBars(xAxis, yAxis);
     addPlottable(bars);
     bars->setWidth(10);
-    bars->setData(x, y);
+    bars->setData(hist_x, hist_y);
     bars->setPen(QPen(Qt::black));
     bars->setBrush(QColor(77, 77, 76));
 
-    xAxis->setRange(0, max_x + 20);
-    yAxis->setRange(0, max_y + 5);
+    xAxis->setRange(0, maxIbi + 20);
+    yAxis->setRange(0, maxHistValue + 5);
 
     replot();
 }
@@ -68,3 +104,7 @@ void HistPlot::clear()
     replot();
 }
 
+void HistPlot::setup(QVector<double> ibis, double maxIbi)
+{
+    plot(ibis, maxIbi);
+}

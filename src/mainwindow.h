@@ -48,15 +48,16 @@ private slots:
     void closeCurrentFile();
     void saveInterbeatIntervals();
 
-    void peakdet(); // The peak detection algorithm
-    void insertPeakAtPos(QPoint position); // Used for inserting a peak at clicked position
-    void insertPeakAtPoint(double position); // Used for inserting a peak at a specific time
-    void deletePeak(QCPAbstractItem *peak); // Delete a single peak
-    void deletePeaks(QList<QCPAbstractItem*> peaksToDelete); // Delete a list of peaks
+    void peakDetection();
+    // TODO: MOVE TO ECGPLOT
+    //void peakdet(); // The peak detection algorithm
+    //void insertPeakAtPos(QPoint position); // Used for inserting a peak at clicked position
+    //void insertPeakAtPoint(double position); // Used for inserting a peak at a specific time
+    //void deletePeak(QCPAbstractItem *peak); // Delete a single peak
+    //void deletePeaks(QList<QCPAbstractItem*> peaksToDelete); // Delete a list of peaks
 
     void setupIbiPlot();
     void jumpToSelection(); // Highlight a selected interbeat interval in ecg view
-    void artifactDetection(); // Search for artifacts in sequence of interbeat intervals
     void insertMissingPeaks(); // Subdivides an interbeat interval into shorter intervals
 
     void aboutPeakMan();
@@ -72,30 +73,25 @@ private:
     void dragEnterEvent(QDragEnterEvent *event); // Allows to drag something into the application
     void dropEvent(QDropEvent *event); // Checks the dropped file and opens it
 
-    int sampleRate; // Stores the samplerate in hertz
+    //int sampleRate; // Stores the samplerate in hertz
     QLabel *sampleRateLabel; // Used for displaying the samplerate in the top right corner of the gui
     void updateSampleRateLabel(); // Updates the samplerate label
 
-    QVector<double> ecg_x; // x-axis values for ecg_y (time in seconds)
-    QVector<double> ecg_y; // Stores the actual ecg signal
+    // TODO: REMOVE FROM HERE, IS IN ECGPLOT NOW
+//    QVector<double> ecg_x; // x-axis values for ecg_y (time in seconds)
+//    QVector<double> ecg_y; // Stores the actual ecg signal
 
-    QLinkedList<QCPItemStraightLine*> peaks; // List of detected peaks
-    QCPItemStraightLine* insertNewPeak(double position); // Insert a new peak at 'position' (time in seconds)
+    // TODO: MOVE TO ECGPLOT
+    //QLinkedList<QCPItemStraightLine*> peaks; // List of detected peaks
     void clearPeaks(); // Removes all peaks from the plot and clears the peaks vector
 
-    QVector<double> ibi_x; // x-axis values for ibi_y (1, 2, ...)
-    QVector<double> ibi_y; // Stores interbeat intervals
+    // TODO: REMOVE FROM HERE, IS IN IBIPLOT NOW
+    //QVector<double> ibi_x; // x-axis values for ibi_y (1, 2, ...)
+    //QVector<double> ibi_y; // Stores interbeat intervals
 
+    // TODO: REMOVE FROM HERE, IS IN IBIPLOT NOW
     void clearInterbeatIntervals();
     void calculateInterbeatIntervals();
-
-    QVector<double> hist_x;
-    QVector<double> hist_y;
-
-    void setupHistPlot();
-
-    QVector<double> artifacts_x;
-    QVector<double> artifacts_y;
 
     void closeEvent(QCloseEvent *event);
     void saveSettings(); // Save settings when quitting

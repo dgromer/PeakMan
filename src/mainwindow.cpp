@@ -57,24 +57,20 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->ecgPlot, SIGNAL(globalThresholdChanged(int)), ui->globalThresholdSpinBox, SLOT(setValue(int)));
 
     // Peak detection
-    connect(ui->detectPeaksButton, SIGNAL(clicked()), this, SLOT(peakdet()));
-
-    // Peak insert and removal
-    connect(ui->ecgPlot, SIGNAL(insertPeakAtPos(QPoint)), this, SLOT(insertPeakAtPos(QPoint)));
-    connect(ui->ecgPlot, SIGNAL(deletePeak(QCPAbstractItem*)), this, SLOT(deletePeak(QCPAbstractItem*)));
-    connect(ui->ecgPlot, SIGNAL(deletePeaks(QList<QCPAbstractItem*>)), this, SLOT(deletePeaks(QList<QCPAbstractItem*>)));
+    connect(ui->detectPeaksButton, SIGNAL(clicked()), this, SLOT(peakDetection()));
 
     // Update interbeat intervals
     connect(ui->updateIbiButton, SIGNAL(clicked()), this, SLOT(setupIbiPlot()));
+    connect(ui->ibiPlot, SIGNAL(setupHistPlot(QVector<double>, double)), ui->histPlot, SLOT(setup(QVector<double>, double)));
 
     // Apply correction button and jump to position button
-    connect(ui->artifactDetectionPushButton, SIGNAL(clicked()), this, SLOT(artifactDetection()));
+    connect(ui->artifactDetectionPushButton, SIGNAL(clicked()), ui->ibiPlot, SLOT(artifactDetection()));
     connect(ui->insertMissingPeaksButton, SIGNAL(clicked()), this, SLOT(insertMissingPeaks()));
     connect(ui->ibiPlot, SIGNAL(ibiSelected(bool)), ui->jumpToSelectionButton, SLOT(setEnabled(bool)));
     connect(ui->jumpToSelectionButton, SIGNAL(clicked()), this, SLOT(jumpToSelection()));
 
     // Initialize sample rate label
-    sampleRate = 0;
+    ui->ecgPlot->setSampleRate(0);
     sampleRateLabel = new QLabel(this);
     ui->statusBar->addPermanentWidget(sampleRateLabel);
     updateSampleRateLabel();
@@ -127,34 +123,10 @@ void MainWindow::getFileName()
 
 void MainWindow::closeCurrentFile()
 {
-    // Clear vectors holding ecg data
-    ecg_x.clear();
-    ecg_y.clear();
-
-    // Remove ecg graph from plot
-    ui->ecgPlot->removeGraph(0);
-
-    // Remove all peaks
-    clearPeaks();
-
-    ui->ecgPlot->replot();
-
-    if (!ibi_y.isEmpty())
-    {
-        ibi_x.clear();
-        ibi_y.clear();
-        ui->ibiPlot->clear();
-
-        if (!artifacts_y.isEmpty())
-        {
-            artifacts_x.clear();
-            artifacts_y.clear();
-        }
-
-        hist_x.clear();
-        hist_y.clear();
-        ui->histPlot->clear();
-    }
+    // Clear plots
+    ui->ecgPlot->clear();
+    ui->ibiPlot->clear();
+    ui->histPlot->clear();
 
     // Disable buttons
     ui->detectPeaksButton->setEnabled(false);
@@ -184,6 +156,8 @@ void MainWindow::saveInterbeatIntervals()
     // Paste text
     QTextStream out(&outFile);
 
+    QVector<double> ibi_y = ui->ibiPlot->getIbi_y();
+
     for (int i = 0; i < ibi_y.size(); i++)
     {
         out << ibi_y[i] << "\n";
@@ -196,252 +170,73 @@ void MainWindow::saveInterbeatIntervals()
     ui->statusBar->showMessage("Interbeat intervals exported", 2000);
 }
 
-void MainWindow::peakdet()
+void MainWindow::peakDetection()
 {
-    // Check if there are already peaks
-    if (!peaks.isEmpty())
-    {
-        clearPeaks();
-    }
+    ui->ecgPlot->peakdet(ui->localThresholdSpinBox->value(), ui->globalThresholdSpinBox->value(), ui->minRRIntervallSpinBox->value());
 
-    // Peak detection algorithm starts here
-    double mn = ecg_y.first(), mx = ecg_y.first(), mxpos = ecg_x.first(), curr;
-    double delta = (double)ui->localThresholdSpinBox->value();
-    double threshold = (double)ui->globalThresholdSpinBox->value();
-    double minrrinterval = (double)ui->minRRIntervallSpinBox->value() / 1000;
-    bool lookformax = true;
-
-    for (int i = 0; i < ecg_y.size(); i++)
-    {
-        curr = ecg_y[i];
-
-        if (curr > mx)
-        {
-            mx = curr;
-            mxpos = ecg_x[i];
-        }
-
-        if (curr < mn)
-        {
-            mn = curr;
-        }
-
-        if (lookformax)
-        {
-            if (curr < mx - delta)
-            {
-                if(peaks.size() > 1)
-                {
-                    // Apply threshold and minimal RR interval
-                    if (mxpos - peaks.last()->point1->key() > minrrinterval && (mx > threshold))
-                    {
-                        peaks.append(insertNewPeak(mxpos));
-                    }
-                }
-                // Apply threshold only
-                else if (mx > threshold)
-                {
-                    peaks.append(insertNewPeak(mxpos));
-                }
-
-                mn = curr;
-                lookformax = false;
-            }
-        }
-        else
-        {
-            if (curr > mn + delta)
-            {
-                mx = curr;
-                mxpos = ecg_x[i];
-                lookformax = true;
-            }
-        }
-    }
-
-    ui->ecgPlot->replot();
-
+    // Plot interbeat intervals and histogram
     setupIbiPlot();
 
+    // Enable buttons
     ui->menuSaveInterbeatIntervals->setEnabled(true);
     ui->updateIbiButton->setEnabled(true);
     ui->artifactDetectionPushButton->setEnabled(true);
     ui->insertMissingPeaksButton->setEnabled(true);
 }
 
-void MainWindow::insertPeakAtPos(QPoint position)
-{
-    double pos_x = ui->ecgPlot->xAxis->pixelToCoord((double) position.x());
-
-    // Cancel if click was outside of graph
-    if (pos_x < ecg_x.first() || pos_x > ecg_x.last()) return;
-
-    int newpos = pos_x * sampleRate;
-
-    // Search for maximum around clicked position
-    for (int i = (int) ((pos_x - .1) * sampleRate); i < (int) ((pos_x + .1) * sampleRate); i++)
-    {
-        if (ecg_y[i] > ecg_y[newpos]) newpos = i;
-    }
-
-    double insert = (double)newpos / (double)sampleRate;
-
-    QLinkedList<QCPItemStraightLine*>::iterator iter;
-
-    // Search through peaks list for insertion point
-    for(iter = peaks.begin(); iter != peaks.end(); iter++)
-    {
-        if ((*iter)->point1->key() > insert)
-        {
-            QCPItemStraightLine* newPeak = insertNewPeak(insert);
-            peaks.insert(iter, newPeak);
-
-            return;
-        }
-    }
-}
-
-void MainWindow::insertPeakAtPoint(double position)
-{
-    // Set x position to fit with samplerate
-    double insert = qRound(position * (double)sampleRate) / (double)sampleRate;
-
-    QLinkedList<QCPItemStraightLine*>::iterator iter;
-
-    // Search through peaks list for insertion point
-    for(iter = peaks.begin(); iter != peaks.end(); iter++)
-    {
-        if ((*iter)->point1->key() > insert)
-        {
-            QCPItemStraightLine* newPeak = insertNewPeak(insert);
-            peaks.insert(iter, newPeak);
-
-            return;
-        }
-    }
-}
-
-void MainWindow::deletePeak(QCPAbstractItem *peak)
-{
-    peaks.removeOne(qobject_cast<QCPItemStraightLine*>(peak));
-    ui->ecgPlot->removeItem(peak);
-}
-
-void MainWindow::deletePeaks(QList<QCPAbstractItem*> peaksToDelete)
-{
-    foreach(QCPAbstractItem* peak, peaksToDelete)
-    {
-        peaks.removeOne(qobject_cast<QCPItemStraightLine*>(peak));
-        ui->ecgPlot->removeItem(peak);
-    }
-
-    ui->ecgPlot->replot();
-}
-
 void MainWindow::setupIbiPlot()
 {
-    if (peaks.isEmpty()) return;
-
-    // Remove old interbeat intervals if there are any present
-    if (!ibi_y.empty()) clearInterbeatIntervals();
-
-    // Calculate the new interbeat intervals
-    calculateInterbeatIntervals();
-
-    // Plot interbeat intervals
-    ui->ibiPlot->plot(ibi_x, ibi_y);
-
-    // TODO: maybe remove this from here and set/unset only inside ibiPlot
-    // Enable selection in ibi plot
-    ui->ibiPlot->setTracer();
-
-    setupHistPlot();
+    if (!ui->ecgPlot->getPeaks().isEmpty())
+    {
+        ui->ibiPlot->setup(ui->ecgPlot->getPeaks());
+    }
 }
 
 void MainWindow::jumpToSelection()
 {
     ui->tabWidget->setCurrentIndex(0);
 
-    double x = 0;
-
-    // Sum interbeat intervals up to selection to get x-axis position in ecgPlot
-    for (int i  = 0; i < (int)ui->ibiPlot->getSelectionGraphKey(); i++)
-    {
-        x += ibi_y[i] / 1000;
-    }
+    double x = ui->ibiPlot->getSelectionTimePoint();
 
     // Add position of first peak to x
-    x += peaks.first()->point1->key();
+    x += ui->ecgPlot->getPeaks().first()->point1->key();
 
     // Set view port to selected peak
     ui->ecgPlot->xAxis->setRange(x, ui->ecgPlot->xAxis->range().size(), Qt::AlignCenter);
 
     // x-value for highlight rect
-    double key = x - ui->ibiPlot->getSelectionValue() / 1000 / 2;
+    double key = x - ui->ibiPlot->getSelectionPosY() / 1000 / 2;
 
     // Add highlight line
-    ui->ecgPlot->showIbiHighlightRect(key, ui->ibiPlot->getSelectionValue() / 1000);
-
-    ui->ecgPlot->replot();
-}
-
-void MainWindow::artifactDetection()
-{
-    if (!artifacts_y.isEmpty())
-    {
-        artifacts_x.clear();
-        artifacts_y.clear();
-        ui->ibiPlot->removeGraph(1);
-    }
-
-    for (int i = 1; i < ibi_y.size(); i++)
-    {
-        if (qAbs(ibi_y[i] - ibi_y[i - 1]) > .2 * ibi_y[i - 1])
-        {
-            artifacts_x << ibi_x[i];
-            artifacts_y << ibi_y[i];
-        }
-    }
-
-    ui->ibiPlot->plotArtifacts(artifacts_x, artifacts_y);
+    ui->ecgPlot->showIbiHighlightRect(key, ui->ibiPlot->getSelectionPosY() / 1000);
 }
 
 void MainWindow::insertMissingPeaks()
 {
-    double x = 0;
-    int i, m = (int)ui->ibiPlot->getSelectionGraphKey() - 1;
-
-    // Sum interbeat intervals up to selection to get x-axis position in ecgPlot
-    for (i = 0; i < m; i++)
-    {
-        x += ibi_y[i] / 1000;
-    }
-
-    // Add position of first peak to x
-    x += peaks.first()->point1->key();
+    double artifact_size = ui->ibiPlot->getSelectionPosY() / 1000;
+    double artifact_pos = ui->ibiPlot->getSelectionTimePoint() + ui->ecgPlot->getTimeBeforeFirstPeak() - artifact_size;
 
     // Get size of the interbeat interval before selection as reference interval
-    double ref = ibi_y[i - 1] / 1000;
-
-    // Get size of selected artifact
-    double total = ui->ibiPlot->getSelectionValue() / 1000;
+    double ref = ui->ibiPlot->getReferenceInterval();
 
     // Calculate number of new intervals
-    int n = qRound(total / ref);
+    int n = qRound(artifact_size / ref);
 
     // Get size of new beats
-    double new_size = total / n;
+    double new_size = artifact_size / n;
 
-    for (int j = 1; j < n; j++)
+    // TODO: evtl. hier insertPeakAtTimePoints definieren
+    for (int i = 1; i < n; i++)
     {
-        insertPeakAtPoint(x + (double)j * new_size);
+        ui->ecgPlot->insertPeakAtTimePoint(artifact_pos + (double)i * new_size);
     }
 
     ui->ecgPlot->replot();
 
-    clearInterbeatIntervals();
-    calculateInterbeatIntervals();
-    ui->ibiPlot->update(ibi_x, ibi_y);
+    // TODO: don't reset viewport here
+    // Plot interbeat intervals and histogram
+    //ui->ibiPlot->setup(ui->ecgPlot->getPeaks());
+    ui->ibiPlot->setup(ui->ecgPlot->getPeaks(), FALSE);
 }
 
 void MainWindow::aboutPeakMan()
@@ -455,12 +250,13 @@ void MainWindow::aboutPeakMan()
 
 void MainWindow::execOpenFileDialog()
 {
-    OpenFileDialog dialog(this, openFileName, sampleRate);
+    OpenFileDialog dialog(this, openFileName, ui->ecgPlot->getSampleRate());
     dialog.exec();
 
     if (dialog.result() == QDialog::Accepted)
     {
-        sampleRate = dialog.getSampleRate();
+        //sampleRate = dialog.getSampleRate();
+        ui->ecgPlot->setSampleRate(dialog.getSampleRate());
         updateSampleRateLabel();
 
         if (dialog.getRadioButtonPushed() == "ecgsignal")
@@ -481,7 +277,7 @@ void MainWindow::execOpenFileDialog()
 void MainWindow::openEcgFile()
 {
     // If there's already an open file, close it before opening the new one
-    if (!ecg_y.isEmpty()) closeCurrentFile();
+    if (!ui->ecgPlot->getEcg_y().isEmpty()) closeCurrentFile();
 
     ui->statusBar->showMessage("Opening file ...");
 
@@ -492,6 +288,9 @@ void MainWindow::openEcgFile()
 
     QTextStream in(&file);
 
+    // Store ecg signal here
+    QVector<double> ecg_y;
+
     // Read file line by line
     while (!in.atEnd())
     {
@@ -500,10 +299,13 @@ void MainWindow::openEcgFile()
 
     file.close();
 
+    // x-axis vector for ecg signal with time points in seconds
+    QVector<double> ecg_x;
+
     // Create a vector with time for x-axis
-    for(int i = 0; i < ecg_y.size(); i++)
+    for (int i = 0; i < ecg_y.size(); i++)
     {
-        ecg_x << (double) i / sampleRate;
+        ecg_x << (double) i / ui->ecgPlot->getSampleRate();
     }
 
     // Plot ecg signal
@@ -562,91 +364,7 @@ void MainWindow::dropEvent(QDropEvent *event)
 
 void MainWindow::updateSampleRateLabel()
 {
-    sampleRateLabel->setText("   Sample Rate: " + QString::number(sampleRate) + " Hz ");
-}
-
-QCPItemStraightLine* MainWindow::insertNewPeak(double position)
-{
-    QCPItemStraightLine* newPeak = new QCPItemStraightLine(ui->ecgPlot);
-
-    ui->ecgPlot->addItem(newPeak);
-    newPeak->setLayer("peaks");
-
-    // Set coordinates
-    newPeak->point1->setCoords(position, 1);
-    newPeak->point2->setCoords(position, 0);
-
-    newPeak->setPen(QPen(QBrush(QColor(66, 113, 174, 130)), 5));
-    newPeak->setSelectedPen(QPen(QBrush(QColor(234, 183, 0, 200)), 3));
-
-    return newPeak;
-}
-
-void MainWindow::clearPeaks()
-{
-    // Remove peaks from plot
-    foreach (QCPLayerable *l, ui->ecgPlot->layer("peaks")->children())
-    {
-        ui->ecgPlot->removeItem(qobject_cast<QCPAbstractItem*>(l));
-    }
-
-    peaks.clear();
-}
-
-void MainWindow::clearInterbeatIntervals()
-{
-    ibi_x.clear();
-    ibi_y.clear();
-
-    if (!artifacts_y.empty())
-    {
-        artifacts_x.clear();
-        artifacts_y.clear();
-    }
-
-    ui->ibiPlot->clear();
-}
-
-void MainWindow::calculateInterbeatIntervals()
-{
-    double lastPeakPosition = peaks.first()->point1->key() * 1000;
-    int i = 0;
-
-    // Compute interbeat intervals in msec
-    foreach (QCPItemStraightLine *peak, peaks)
-    {
-        ibi_x << (double) i++;
-        ibi_y << peak->point1->key() * 1000 - lastPeakPosition;
-
-        lastPeakPosition += ibi_y.last();
-    }
-
-    // First element is zero
-    ibi_x.removeFirst();
-    ibi_y.removeFirst();
-}
-
-void MainWindow::setupHistPlot()
-{
-    double maxIbiValue = ui->ibiPlot->getMaxIbi();
-
-    hist_y = QVector<double>(qFloor(maxIbiValue / 10) + 1);
-    hist_x = QVector<double>(hist_y.size());
-
-    double maxHistValue = 0;
-
-    for (int i = 0; i < ibi_y.size(); i++)
-    {
-        hist_y[qFloor(ibi_y[i] / 10)]++;
-    }
-
-    for (int i = 0; i < hist_x.size(); i++)
-    {
-        hist_x[i] = i * 10 + 5;
-        maxHistValue = qMax(maxHistValue, hist_y[i]);
-    }
-
-    ui->histPlot->plot(hist_x, hist_y, maxIbiValue, maxHistValue);
+    sampleRateLabel->setText("   Sample Rate: " + QString::number(ui->ecgPlot->getSampleRate()) + " Hz ");
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -666,7 +384,7 @@ void MainWindow::saveSettings()
     settings.setValue("pos", pos());
 
     // Save sample rate for ecg data
-    settings.setValue("samplerate", sampleRate);
+    settings.setValue("samplerate", ui->ecgPlot->getSampleRate());
 
     // Save settings for peak detection algorithm
     settings.setValue("delta", ui->localThresholdSpinBox->value());
@@ -696,7 +414,7 @@ void MainWindow::loadSettings()
     move(settings.value("pos", center).toPoint());
 
     // Set sample rate for ecg data
-    sampleRate = settings.value("samplerate", "").toInt();
+    ui->ecgPlot->setSampleRate(settings.value("samplerate", "").toInt());
     updateSampleRateLabel();
 
     // Set settings for peak detection algorithm

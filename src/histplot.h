@@ -30,8 +30,11 @@ public:
     explicit HistPlot(QWidget *parent);
     ~HistPlot();
 
-    void plot(QVector<double> x, QVector<double> y, double max_x, double max_y);
+    void plot(QVector<double> ibis, double maxIbi);
     void clear();
+
+public slots:
+    void setup(QVector<double> ibis, double maxIbi);
 };
 
 #endif // HISTPLOT_H

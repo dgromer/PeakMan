@@ -32,14 +32,34 @@ public:
     ~ECGPlot();
     void plot(QVector<double> x, QVector<double> y);
     void clear();
+    void peakdet(double local_threshold, double global_threshold, double minrrinterval);
+    QCPItemStraightLine* insertNewPeak(double position);
+    void insertPeakAtClickPos(QPoint position);
+    void insertPeakAtTimePoint(double position);
+    void deletePeak(QCPAbstractItem *peak);
+    void deletePeaks(QList<QCPAbstractItem*> peaksToDelete);
+    void clearPeaks();
     void showIbiHighlightRect(double x, double width);
 
-signals:
-    void insertPeakAtPos(QPoint position);
-    void deletePeak(QCPAbstractItem*);
-    void deletePeaks(QList<QCPAbstractItem*>);
+    QVector<double> getEcg_x();
+    QVector<double> getEcg_y();
 
+    QLinkedList<QCPItemStraightLine*> getPeaks();
+    double getTimeBeforeFirstPeak();
+
+    int getSampleRate() const;
+    void setSampleRate(int value);
+
+signals:
+    // Emit at double click on empty position
+    //void insertPeakAtPos(QPoint position);
+    // Emit at double click / delete key on existing peak
+    //void deletePeak(QCPAbstractItem*);
+    // Emit at delete key on multiple peaks
+    //void deletePeaks(QList<QCPAbstractItem*>);
+    // Emit upon movement of the global threshold line
     void globalThresholdChanged(int);
+    void peaksDetected(QLinkedList<QCPItemStraightLine*>);
 
 public slots:
     void updateGlobalThresholdLine(int y);
@@ -55,6 +75,14 @@ private slots:
     void highlightTimerUpdate();
 
 private:
+    QCPGraph *ecg;
+    QVector<double> ecg_x;
+    QVector<double> ecg_y;
+
+    int sampleRate;
+
+    QLinkedList<QCPItemStraightLine*> peaks;
+
     QRubberBand *rubberBand;
     QPoint origin;
 

@@ -28,7 +28,6 @@ ECGPlot::ECGPlot(QWidget *parent) : QCustomPlot(parent)
 
     // Initialize layers
     addLayer("peaks");
-    addLayer("data");
     addLayer("globalthresholdline");
     addLayer("highlight");
 
@@ -75,16 +74,182 @@ ECGPlot::~ECGPlot()
 
 void ECGPlot::plot(QVector<double> x, QVector<double> y)
 {
-    addGraph();
-    graph(0)->setPen(QPen(QColor(77, 77, 76)));
-    graph(0)->setData(x, y);
-    graph(0)->setLayer("data");
+    // Store ecg signal in vectors
+    ecg_x = x;
+    ecg_y = y;
+
+    ecg = addGraph();
+    ecg->setPen(QPen(QColor(77, 77, 76)));
+    ecg->setData(x, y);
     replot();
 }
 
 void ECGPlot::clear()
 {
+    // Remove ecg signal
+    removeGraph(ecg);
+    ecg_x.clear();
+    ecg_y.clear();
 
+    // Remove peaks
+    clearPeaks();
+
+    replot();
+}
+
+void ECGPlot::peakdet(double local_threshold, double global_threshold, double minrrinterval)
+{
+    // Remove already detected peaks
+    clearPeaks();
+
+    // Peak detection algorithm starts here
+    double mn = ecg_y.first(), mx = ecg_y.first(), mxpos = ecg_x.first(), curr;
+    bool lookformax = true;
+
+    for (int i = 0; i < ecg_y.size(); i++)
+    {
+        curr = ecg_y[i];
+
+        if (curr > mx)
+        {
+            mx = curr;
+            mxpos = ecg_x[i];
+        }
+
+        if (curr < mn)
+        {
+            mn = curr;
+        }
+
+        if (lookformax)
+        {
+            if (curr < mx - local_threshold)
+            {
+                // Check for global threshold and minimal RR interval
+                if (mx > global_threshold && !(peaks.size() > 1 && !((mxpos - peaks.last()->point1->key()) > minrrinterval / 1000)))
+                {
+                    peaks.append(insertNewPeak(mxpos));
+                }
+
+                mn = curr;
+                lookformax = false;
+            }
+        }
+        else
+        {
+            if (curr > mn + local_threshold)
+            {
+                mx = curr;
+                mxpos = ecg_x[i];
+                lookformax = true;
+            }
+        }
+    }
+
+    if (!peaks.isEmpty())
+    {
+        emit peaksDetected(peaks);
+    }
+
+    replot();
+}
+
+QCPItemStraightLine* ECGPlot::insertNewPeak(double position)
+{
+    QCPItemStraightLine* newPeak = new QCPItemStraightLine(this);
+
+    addItem(newPeak);
+    newPeak->setLayer("peaks");
+
+    // Set coordinates
+    newPeak->point1->setCoords(position, 1);
+    newPeak->point2->setCoords(position, 0);
+
+    newPeak->setPen(QPen(QBrush(QColor(66, 113, 174, 130)), 5));
+    newPeak->setSelectedPen(QPen(QBrush(QColor(234, 183, 0, 200)), 3));
+
+    return newPeak;
+}
+
+void ECGPlot::insertPeakAtClickPos(QPoint position)
+{
+    // Convert clicked position to time point
+    double pos_x = xAxis->pixelToCoord((double) position.x());
+
+    // Cancel if click was outside of graph
+    if (pos_x < ecg_x.first() || pos_x > ecg_x.last()) return;
+
+    int newpos = pos_x * sampleRate;
+
+    // Search for maximum around clicked position
+    for (int i = (int) ((pos_x - .1) * sampleRate); i < (int) ((pos_x + .1) * sampleRate); i++)
+    {
+        if (ecg_y[i] > ecg_y[newpos]) newpos = i;
+    }
+
+    double insert = (double)newpos / (double)sampleRate;
+
+    QLinkedList<QCPItemStraightLine*>::iterator iter;
+
+    // Search through peaks list for insertion point
+    for(iter = peaks.begin(); iter != peaks.end(); iter++)
+    {
+        if ((*iter)->point1->key() > insert)
+        {
+            QCPItemStraightLine* newPeak = insertNewPeak(insert);
+            peaks.insert(iter, newPeak);
+
+            return;
+        }
+    }
+}
+
+void ECGPlot::insertPeakAtTimePoint(double position)
+{
+    // Set x position to fit with samplerate
+    double insert = qRound(position * (double)sampleRate) / (double)sampleRate;
+
+    QLinkedList<QCPItemStraightLine*>::iterator iter;
+
+    // Search through peaks list for insertion point
+    for(iter = peaks.begin(); iter != peaks.end(); iter++)
+    {
+        if ((*iter)->point1->key() > insert)
+        {
+            QCPItemStraightLine* newPeak = insertNewPeak(insert);
+            peaks.insert(iter, newPeak);
+
+            return;
+        }
+    }
+}
+
+void ECGPlot::deletePeak(QCPAbstractItem *peak)
+{
+    peaks.removeOne(qobject_cast<QCPItemStraightLine*>(peak));
+    removeItem(peak);
+    replot();
+}
+
+void ECGPlot::deletePeaks(QList<QCPAbstractItem *> peaksToDelete)
+{
+    foreach(QCPAbstractItem* peak, peaksToDelete)
+    {
+        peaks.removeOne(qobject_cast<QCPItemStraightLine*>(peak));
+        removeItem(peak);
+    }
+
+    replot();
+}
+
+void ECGPlot::clearPeaks()
+{
+    foreach (QCPLayerable *l, layer("peaks")->children())
+    {
+        removeItem(qobject_cast<QCPAbstractItem*>(l));
+    }
+
+    peaks.clear();
 }
 
 void ECGPlot::showIbiHighlightRect(double x, double width)
@@ -99,6 +264,26 @@ void ECGPlot::showIbiHighlightRect(double x, double width)
     highlightTimer->start(100);
 
     replot();
+}
+
+QVector<double> ECGPlot::getEcg_x()
+{
+    return ecg_x;
+}
+
+QVector<double> ECGPlot::getEcg_y()
+{
+    return ecg_y;
+}
+
+QLinkedList<QCPItemStraightLine *> ECGPlot::getPeaks()
+{
+    return peaks;
+}
+
+double ECGPlot::getTimeBeforeFirstPeak()
+{
+    return peaks.first()->point1->key();
 }
 
 void ECGPlot::updateGlobalThresholdLine(int y)
@@ -242,21 +427,24 @@ void ECGPlot::mouseDoubleClickEvent(QMouseEvent *event)
 
     if (itemAt(event->pos()))
     {
-        emit deletePeak(itemAt(event->pos()));
+        //emit deletePeak(itemAt(event->pos()));
+        deletePeak(itemAt(event->pos()));
     }
     else
     {
-        emit insertPeakAtPos(event->pos());
+        //emit insertPeakAtPos(event->pos());
+        insertPeakAtClickPos(event->pos());
     }
 
-    // TODO: implementation of slot in mainwindow
+    // TODO: implementation of slot in mainwindow (?)
 }
 
 void ECGPlot::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Delete && !selectedItems().isEmpty())
     {
-        emit deletePeaks(selectedItems());
+        //emit deletePeaks(selectedItems());
+        deletePeaks(selectedItems());
     }
 }
 
@@ -275,5 +463,15 @@ void ECGPlot::highlightTimerUpdate()
     }
 
     replot();
+}
+
+int ECGPlot::getSampleRate() const
+{
+    return sampleRate;
+}
+
+void ECGPlot::setSampleRate(int value)
+{
+    sampleRate = value;
 }
 

@@ -72,35 +72,68 @@ void IBIPlot::unsetTracer()
 }
 
 // Return x value of tracer
-double IBIPlot::getSelectionGraphKey()
+double IBIPlot::getSelectionPosX()
 {
     return selection->graphKey();
 }
 
 // Return y value of tracer
-double IBIPlot::getSelectionValue()
+double IBIPlot::getSelectionPosY()
 {
     return selection->position->value();
 }
 
-void IBIPlot::plot(QVector<double> x, QVector<double> y)
+double IBIPlot::getSelectionTimePoint()
+{
+    double x = 0;
+
+    // Sum interbeat intervals up to selection to get x-axis position in ecgPlot
+    for (int i  = 0; i < (int)getSelectionPosX(); i++)
+    {
+        x += ibi_y[i] / 1000;
+    }
+
+    return x;
+}
+
+double IBIPlot::getReferenceInterval()
+{
+    return ibi_y[(int)getSelectionPosX() - 2] / 1000;
+}
+
+// Compute interbeat intervals from peak positions
+void IBIPlot::computeInterbeatIntervals(QLinkedList<QCPItemStraightLine*> peaks)
+{
+    clear();
+
+    double lastPeakPosition = peaks.first()->point1->key() * 1000;
+    int i = 0;
+
+    // Compute interbeat intervals in msec
+    foreach (QCPItemStraightLine *peak, peaks)
+    {
+        ibi_x << (double) i++;
+        ibi_y << peak->point1->key() * 1000 - lastPeakPosition;
+
+        lastPeakPosition += ibi_y.last();
+    }
+
+    // First element is zero
+    ibi_x.removeFirst();
+    ibi_y.removeFirst();
+}
+
+void IBIPlot::plot(QVector<double> x, QVector<double> y, bool set_range)
 {
     ibi->setData(x, y);
     ibi->setPen(QColor(77, 77, 76));
 
-    // Find largest interbeat interval and set plot view accordingly
-    xAxis->setRange(-5, ibi->data()->size() + 5);
-    yAxis->setRange(0, getMaxIbi() + 200);
-
-    replot();
-}
-
-void IBIPlot::update(QVector<double> x, QVector<double> y)
-{
-    clearArtifacts();
-
-    ibi->setData(x, y);
-    yAxis->setRange(0, getMaxIbi() + 200);
+    if (set_range)
+    {
+        // Find largest interbeat interval and set plot view accordingly
+        xAxis->setRange(-5, ibi->data()->size() + 5);
+        yAxis->setRange(0, getMaxIbi() + 200);
+    }
 
     replot();
 }
@@ -108,6 +141,9 @@ void IBIPlot::update(QVector<double> x, QVector<double> y)
 void IBIPlot::clear()
 {
     ibi->clearData();
+    ibi_x.clear();
+    ibi_y.clear();
+
     clearArtifacts();
     unsetTracer();
 
@@ -141,6 +177,37 @@ double IBIPlot::getMaxIbi()
     return maxIbi;
 }
 
+QVector<double> IBIPlot::getIbi_y()
+{
+    return ibi_y;
+}
+
+void IBIPlot::setup(QLinkedList<QCPItemStraightLine *> peaks, bool set_range)
+{
+    computeInterbeatIntervals(peaks);
+    plot(ibi_x, ibi_y, set_range);
+    setTracer();
+    emit setupHistPlot(ibi_y, getMaxIbi());
+}
+
+void IBIPlot::artifactDetection()
+{
+    QVector<double> artifacts_x;
+    QVector<double> artifacts_y;
+
+    for (int i = 1; i < ibi_y.size(); i++)
+    {
+        if (qAbs(ibi_y[i] - ibi_y[i - 1]) > .2 * ibi_y[i - 1])
+        {
+            artifacts_x << ibi_x[i];
+            artifacts_y << ibi_y[i];
+        }
+    }
+
+    plotArtifacts(artifacts_x, artifacts_y);
+}
+
+// TODO: improve selecting mechanism here: should also look at y-position of click (maybe nearest point of ibi line)
 // Set tracer on mouse click
 void IBIPlot::mousePressEvent(QMouseEvent *event)
 {

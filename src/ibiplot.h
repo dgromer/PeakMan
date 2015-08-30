@@ -32,24 +32,38 @@ public:
 
     void setTracer();
     void unsetTracer();
-    double getSelectionGraphKey();
-    double getSelectionValue();
-    void plot(QVector<double> x, QVector<double> y);
-    void update(QVector<double> x, QVector<double> y);
+    double getSelectionPosX();
+    double getSelectionPosY();
+    double getSelectionTimePoint();
+    double getReferenceInterval();
+    void computeInterbeatIntervals(QLinkedList<QCPItemStraightLine *> peaks);
+    void setup(QLinkedList<QCPItemStraightLine *> peaks, bool set_range = TRUE);
+    //void update(QLinkedList<QCPItemStraightLine *> peaks);
+    void plot(QVector<double> x, QVector<double> y, bool set_range = TRUE);
     void clear();
     void plotArtifacts(QVector<double> x, QVector<double> y);
     void clearArtifacts();
     double getMaxIbi();
 
+    QVector<double> getIbi_y();
+
+public slots:
+    void artifactDetection(); // Search for artifacts in sequence of interbeat intervals
+
 signals:
     void ibiSelected(bool);
+    void setupHistPlot(QVector<double>, double);
 
 private slots:
     void mousePressEvent(QMouseEvent *event);
 
 private:
     QCPItemTracer *selection;
+
     QCPGraph *ibi;
+    QVector<double> ibi_x;
+    QVector<double> ibi_y;
+
     QCPGraph *artifacts;
 };
 

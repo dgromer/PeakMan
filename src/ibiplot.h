@@ -37,9 +37,9 @@ public:
     double getSelectionTimePoint();
     double getReferenceInterval();
     void computeInterbeatIntervals(QLinkedList<QCPItemStraightLine *> peaks);
-    void setup(QLinkedList<QCPItemStraightLine *> peaks, bool set_range = TRUE);
+    void setup(QLinkedList<QCPItemStraightLine *> peaks, bool set_range = true);
     //void update(QLinkedList<QCPItemStraightLine *> peaks);
-    void plot(QVector<double> x, QVector<double> y, bool set_range = TRUE);
+    void plot(QVector<double> x, QVector<double> y, bool set_range = true);
     void clear();
     void plotArtifacts(QVector<double> x, QVector<double> y);
     void clearArtifacts();

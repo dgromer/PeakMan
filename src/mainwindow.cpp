@@ -236,7 +236,7 @@ void MainWindow::insertMissingPeaks()
     // TODO: don't reset viewport here
     // Plot interbeat intervals and histogram
     //ui->ibiPlot->setup(ui->ecgPlot->getPeaks());
-    ui->ibiPlot->setup(ui->ecgPlot->getPeaks(), FALSE);
+    ui->ibiPlot->setup(ui->ecgPlot->getPeaks(), false);
 }
 
 void MainWindow::aboutPeakMan()

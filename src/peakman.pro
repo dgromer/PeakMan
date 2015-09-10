@@ -36,6 +36,6 @@ RESOURCES += \
 win32 {
     RC_ICONS = resources/logo.ico
 } else:macx {
-    ICON =
+    ICON = resources/logo.icns
 }
 

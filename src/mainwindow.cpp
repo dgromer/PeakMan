@@ -33,6 +33,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Create connections for menu items
     connect(ui->menuOpenFile, SIGNAL(triggered()), this, SLOT(getFileName()));
     connect(ui->menuCloseCurrentFile, SIGNAL(triggered()), this, SLOT(closeCurrentFile()));
+    connect(ui->menuSavePeakPositions, SIGNAL(triggered()), this, SLOT(savePeakPositions()));
     connect(ui->menuSaveInterbeatIntervals, SIGNAL(triggered()), this, SLOT(saveInterbeatIntervals()));
     connect(ui->menuAboutPeakMan, SIGNAL(triggered(bool)), this, SLOT(aboutPeakMan()));
 
@@ -170,6 +171,41 @@ void MainWindow::saveInterbeatIntervals()
     ui->statusBar->showMessage("Interbeat intervals exported", 2000);
 }
 
+void MainWindow::savePeakPositions()
+{
+    // New filename prototype
+    QFileInfo fn(openFileName);
+    QString newFn = fn.canonicalPath() + QDir::separator() + fn.baseName() + "_peaks.txt";
+
+    // Get new filename
+    QString outFileName = QFileDialog::getSaveFileName(this, "Save As", newFn);
+
+    // Check if dialog was canceled
+    if (outFileName == "") return;
+
+    // Open new file
+    QFile outFile(outFileName);
+    if (!outFile.open(QIODevice::WriteOnly | QIODevice::Text)) return;
+
+    // Paste text
+    QTextStream out(&outFile);
+
+    QLinkedList<QCPItemStraightLine*> peaks = ui->ecgPlot->getPeaks();
+    QLinkedList<QCPItemStraightLine*>::iterator iter;
+
+    // Search through peaks list for insertion point
+    for(iter = peaks.begin(); iter != peaks.end(); iter++)
+    {
+        out << (*iter)->point1->key() << "\n";
+    }
+
+    // Close
+    outFile.flush();
+    outFile.close();
+
+    ui->statusBar->showMessage("Peak positions exported", 2000);
+}
+
 void MainWindow::peakDetection()
 {
     ui->ecgPlot->peakdet(ui->localThresholdSpinBox->value(), ui->globalThresholdSpinBox->value(), ui->minRRIntervallSpinBox->value());
@@ -178,6 +214,7 @@ void MainWindow::peakDetection()
     setupIbiPlot();
 
     // Enable buttons
+    ui->menuSavePeakPositions->setEnabled(true);
     ui->menuSaveInterbeatIntervals->setEnabled(true);
     ui->updateIbiButton->setEnabled(true);
     ui->artifactDetectionPushButton->setEnabled(true);

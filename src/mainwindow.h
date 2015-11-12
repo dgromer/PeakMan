@@ -47,6 +47,7 @@ private slots:
     void getFileName();
     void closeCurrentFile();
     void saveInterbeatIntervals();
+    void savePeakPositions();
 
     void peakDetection();
     // TODO: MOVE TO ECGPLOT

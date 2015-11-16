@@ -18,17 +18,20 @@ SOURCES += main.cpp\
     ecgplot.cpp \
     openfiledialog.cpp \
     ibiplot.cpp \
-    histplot.cpp
+    histplot.cpp \
+    saveinterbeatintervalsdialog.cpp
 
 HEADERS  += mainwindow.h \
     qcustomplot.h \
     ecgplot.h \
     openfiledialog.h \
     ibiplot.h \
-    histplot.h
+    histplot.h \
+    saveinterbeatintervalsdialog.h
 
 FORMS    += mainwindow.ui \
-    openfiledialog.ui
+    openfiledialog.ui \
+    saveinterbeatintervalsdialog.ui
 
 RESOURCES += \
     images.qrc

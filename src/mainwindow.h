@@ -24,6 +24,7 @@
 #include "qcustomplot.h"
 #include "ecgplot.h"
 #include "openfiledialog.h"
+#include "saveinterbeatintervalsdialog.h"
 
 namespace Ui {
 class MainWindow;

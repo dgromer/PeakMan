@@ -150,18 +150,37 @@ void MainWindow::saveInterbeatIntervals()
     // Check if dialog was canceled
     if (outFileName == "") return;
 
-    // Open new file
+    // Options dialog for saving interbeat intervals
+    SaveInterbeatIntervalsDialog dialog(this);
+    dialog.exec();
+
+    // Stop here if dialog was canceled
+    if (dialog.result() == QDialog::Rejected) return;
+
+    // Create new file and open it
     QFile outFile(outFileName);
     if (!outFile.open(QIODevice::WriteOnly | QIODevice::Text)) return;
 
     // Paste text
     QTextStream out(&outFile);
 
+    if (dialog.includeSignalStartEnd())
+    {
+        // Include signal start to first peak as interbeat interval
+        out << ui->ecgPlot->getPeaks().first()->point1->key() * 1000 << "\n";
+    }
+
     QVector<double> ibi_y = ui->ibiPlot->getIbi_y();
 
     for (int i = 0; i < ibi_y.size(); i++)
     {
         out << ibi_y[i] << "\n";
+    }
+
+    if (dialog.includeSignalStartEnd())
+    {
+        // Include last peak to signal and as interbeat interval
+        out << ui->ecgPlot->getEcg_x().last() * 1000 - ui->ecgPlot->getPeaks().last()->point1->key() * 1000 << "\n";
     }
 
     // Close
@@ -193,7 +212,7 @@ void MainWindow::savePeakPositions()
     QLinkedList<QCPItemStraightLine*> peaks = ui->ecgPlot->getPeaks();
     QLinkedList<QCPItemStraightLine*>::iterator iter;
 
-    // Search through peaks list for insertion point
+    // Write peaks to file
     for(iter = peaks.begin(); iter != peaks.end(); iter++)
     {
         out << (*iter)->point1->key() << "\n";
@@ -360,7 +379,38 @@ void MainWindow::openEcgFile()
 
 void MainWindow::openPeaksFile()
 {
+    if (ui->ecgPlot->getEcg_y().isEmpty())
+    {
+        // TODO: error message, load ecg data first
+    }
 
+    // If there are already peaks plotted, delete these
+    if (!ui->ecgPlot->getPeaks().isEmpty())
+    {
+        ui->ecgPlot->clearPeaks();
+    }
+
+    ui->statusBar->showMessage("Opening file ...");
+
+    QFile file(openFileName);
+
+    // Open file
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+
+    QTextStream in(&file);
+
+    // Store peak positions in vector
+    QVector<double> peaks_x;
+
+    // Read file line by line
+    while (!in.atEnd())
+    {
+        peaks_x << in.readLine().toDouble();
+    }
+
+    file.close();
+
+    // Insert peaks in ecgplot
 }
 
 void MainWindow::openIbiFile()

@@ -49,6 +49,7 @@ public:
 
 public slots:
     void artifactDetection(); // Search for artifacts in sequence of interbeat intervals
+    void resetView();
 
 signals:
     void ibiSelected(bool);

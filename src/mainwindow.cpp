@@ -71,6 +71,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->ibiPlot, SIGNAL(ibiSelected(bool)), ui->jumpToSelectionButton, SLOT(setEnabled(bool)));
     connect(ui->jumpToSelectionButton, SIGNAL(clicked()), this, SLOT(jumpToSelection()));
     connect(ui->ibiPlot, SIGNAL(ibiSelectedDoubleClick()), this, SLOT(jumpToSelection()));
+    connect(ui->resetIbiViewButton, SIGNAL(clicked()), ui->ibiPlot, SLOT(resetView()));
 
     // Initialize sample rate label
     ui->ecgPlot->setSampleRate(0);
@@ -238,6 +239,7 @@ void MainWindow::peakDetection()
     ui->menuSavePeakPositions->setEnabled(true);
     ui->menuSaveInterbeatIntervals->setEnabled(true);
     ui->updateIbiButton->setEnabled(true);
+    ui->resetIbiViewButton->setEnabled(true);
     ui->artifactDetectionPushButton->setEnabled(true);
     ui->insertMissingPeaksButton->setEnabled(true);
 }

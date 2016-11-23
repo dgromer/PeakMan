@@ -131,11 +131,17 @@ void IBIPlot::plot(QVector<double> x, QVector<double> y, bool set_range)
     if (set_range)
     {
         // Find largest interbeat interval and set plot view accordingly
-        xAxis->setRange(-5, ibi->data()->size() + 5);
         yAxis->setRange(0, getMaxIbi() + 200);
     }
 
     replot();
+}
+
+void IBIPlot::resetView()
+{
+    // Find largest interbeat interval and set plot view accordingly
+    xAxis->setRange(-5, ibi->data()->size() + 5);
+    yAxis->setRange(0, getMaxIbi() + 200);
 }
 
 void IBIPlot::clear()

@@ -235,3 +235,13 @@ void IBIPlot::mousePressEvent(QMouseEvent *event)
     QCustomPlot::mousePressEvent(event);
 }
 
+void IBIPlot::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    if (selection->visible())
+    {
+        emit ibiSelectedDoubleClick();
+    }
+}
+
+
+

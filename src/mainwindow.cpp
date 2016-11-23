@@ -70,6 +70,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->insertMissingPeaksButton, SIGNAL(clicked()), this, SLOT(insertMissingPeaks()));
     connect(ui->ibiPlot, SIGNAL(ibiSelected(bool)), ui->jumpToSelectionButton, SLOT(setEnabled(bool)));
     connect(ui->jumpToSelectionButton, SIGNAL(clicked()), this, SLOT(jumpToSelection()));
+    connect(ui->ibiPlot, SIGNAL(ibiSelectedDoubleClick()), this, SLOT(jumpToSelection()));
 
     // Initialize sample rate label
     ui->ecgPlot->setSampleRate(0);

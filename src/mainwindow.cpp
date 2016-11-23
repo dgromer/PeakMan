@@ -63,6 +63,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Update interbeat intervals
     connect(ui->updateIbiButton, SIGNAL(clicked()), this, SLOT(setupIbiPlot()));
     connect(ui->ibiPlot, SIGNAL(setupHistPlot(QVector<double>, double)), ui->histPlot, SLOT(setup(QVector<double>, double)));
+    connect(ui->ecgPlot, SIGNAL(peaksChanged()), this, SLOT(setupIbiPlot()));
 
     // Apply correction button and jump to position button
     connect(ui->artifactDetectionPushButton, SIGNAL(clicked()), ui->ibiPlot, SLOT(artifactDetection()));
@@ -250,8 +251,6 @@ void MainWindow::setupIbiPlot()
 
 void MainWindow::jumpToSelection()
 {
-    ui->tabWidget->setCurrentIndex(0);
-
     double x = ui->ibiPlot->getSelectionTimePoint();
 
     // Add position of first peak to x

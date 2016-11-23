@@ -146,11 +146,6 @@ void ECGPlot::peakdet(double local_threshold, double global_threshold, double mi
         }
     }
 
-    if (!peaks.isEmpty())
-    {
-        emit peaksDetected(peaks);
-    }
-
     replot();
 }
 
@@ -436,6 +431,8 @@ void ECGPlot::mouseDoubleClickEvent(QMouseEvent *event)
         insertPeakAtClickPos(event->pos());
     }
 
+    emit peaksChanged();
+
     // TODO: implementation of slot in mainwindow (?)
 }
 
@@ -445,6 +442,8 @@ void ECGPlot::keyPressEvent(QKeyEvent *event)
     {
         //emit deletePeaks(selectedItems());
         deletePeaks(selectedItems());
+
+        emit peaksChanged();
     }
 }
 

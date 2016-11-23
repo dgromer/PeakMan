@@ -59,7 +59,7 @@ signals:
     //void deletePeaks(QList<QCPAbstractItem*>);
     // Emit upon movement of the global threshold line
     void globalThresholdChanged(int);
-    void peaksDetected(QLinkedList<QCPItemStraightLine*>);
+    void peaksChanged();
 
 public slots:
     void updateGlobalThresholdLine(int y);

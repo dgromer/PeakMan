@@ -235,6 +235,9 @@ void MainWindow::peakDetection()
     // Plot interbeat intervals and histogram
     setupIbiPlot();
 
+    // Reset IBI plot ranges
+    ui->ibiPlot->resetView();
+
     // Enable buttons
     ui->menuSavePeakPositions->setEnabled(true);
     ui->menuSaveInterbeatIntervals->setEnabled(true);

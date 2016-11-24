@@ -142,6 +142,8 @@ void IBIPlot::resetView()
     // Find largest interbeat interval and set plot view accordingly
     xAxis->setRange(-5, ibi->data()->size() + 5);
     yAxis->setRange(0, getMaxIbi() + 200);
+
+    replot();
 }
 
 void IBIPlot::clear()

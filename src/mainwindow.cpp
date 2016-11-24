@@ -63,12 +63,15 @@ MainWindow::MainWindow(QWidget *parent) :
     // Update interbeat intervals
     connect(ui->updateIbiButton, SIGNAL(clicked()), this, SLOT(setupIbiPlot()));
     connect(ui->ibiPlot, SIGNAL(setupHistPlot(QVector<double>, double)), ui->histPlot, SLOT(setup(QVector<double>, double)));
+    connect(ui->ecgPlot, SIGNAL(peaksChanged()), this, SLOT(setupIbiPlot()));
 
     // Apply correction button and jump to position button
     connect(ui->artifactDetectionPushButton, SIGNAL(clicked()), ui->ibiPlot, SLOT(artifactDetection()));
     connect(ui->insertMissingPeaksButton, SIGNAL(clicked()), this, SLOT(insertMissingPeaks()));
     connect(ui->ibiPlot, SIGNAL(ibiSelected(bool)), ui->jumpToSelectionButton, SLOT(setEnabled(bool)));
     connect(ui->jumpToSelectionButton, SIGNAL(clicked()), this, SLOT(jumpToSelection()));
+    connect(ui->ibiPlot, SIGNAL(ibiSelectedDoubleClick()), this, SLOT(jumpToSelection()));
+    connect(ui->resetIbiViewButton, SIGNAL(clicked()), ui->ibiPlot, SLOT(resetView()));
 
     // Initialize sample rate label
     ui->ecgPlot->setSampleRate(0);
@@ -232,10 +235,14 @@ void MainWindow::peakDetection()
     // Plot interbeat intervals and histogram
     setupIbiPlot();
 
+    // Reset IBI plot ranges
+    ui->ibiPlot->resetView();
+
     // Enable buttons
     ui->menuSavePeakPositions->setEnabled(true);
     ui->menuSaveInterbeatIntervals->setEnabled(true);
     ui->updateIbiButton->setEnabled(true);
+    ui->resetIbiViewButton->setEnabled(true);
     ui->artifactDetectionPushButton->setEnabled(true);
     ui->insertMissingPeaksButton->setEnabled(true);
 }
@@ -250,8 +257,6 @@ void MainWindow::setupIbiPlot()
 
 void MainWindow::jumpToSelection()
 {
-    ui->tabWidget->setCurrentIndex(0);
-
     double x = ui->ibiPlot->getSelectionTimePoint();
 
     // Add position of first peak to x
@@ -298,8 +303,8 @@ void MainWindow::insertMissingPeaks()
 void MainWindow::aboutPeakMan()
 {
     QMessageBox::about(this, "About PeakMan",
-                       "<p><b>PeakMan</b><br>Version 0.3.1</p>"
-                       "<p>Copyright (C) 2014-2015 Daniel Gromer</p>"
+                       "<p><b>PeakMan</b><br>Version 0.4.0</p>"
+                       "<p>Copyright (C) 2014-2016 Daniel Gromer</p>"
                        "<p><a href='https://github.com/dgromer/PeakMan'>https://github.com/dgromer/PeakMan</a></p>"
                        "<p>This program is licensed to you under the terms of version 3 of the GNU <a href='http://www.gnu.org/licenses/gpl-3.0.txt'>General Public License</a>.");
 }

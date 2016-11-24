@@ -49,13 +49,16 @@ public:
 
 public slots:
     void artifactDetection(); // Search for artifacts in sequence of interbeat intervals
+    void resetView();
 
 signals:
     void ibiSelected(bool);
+    void ibiSelectedDoubleClick();
     void setupHistPlot(QVector<double>, double);
 
 private slots:
     void mousePressEvent(QMouseEvent *event);
+    void mouseDoubleClickEvent(QMouseEvent *event);
 
 private:
     QCPItemTracer *selection;

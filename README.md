@@ -2,9 +2,7 @@
 
 PeakMan is an easy-to-use and fast peak detection and artifact processing tool for electrocardiogram data.
 
-![screenshot1](media/screenshot_pm_1.jpg)
-
-![screenshot2](media/screenshot_pm_2.jpg)
+![screenshot1](media/screenshot_pm.jpg)
 
 It builds upon a [peak detection algorithm](http://www.billauer.co.il/peakdet.html) by Eli Billauer and features local and global thresholding for R wave detection.
 

@@ -54,11 +54,13 @@ public slots:
 signals:
     void ibiSelected(bool);
     void ibiSelectedDoubleClick();
+    void ibiSelectedInsertMissingPeaks();
     void setupHistPlot(QVector<double>, double);
 
 private slots:
     void mousePressEvent(QMouseEvent *event);
     void mouseDoubleClickEvent(QMouseEvent *event);
+    void keyPressEvent(QKeyEvent *event);
 
 private:
     QCPItemTracer *selection;

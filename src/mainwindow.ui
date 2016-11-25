@@ -195,8 +195,8 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>300</width>
-          <height>300</height>
+          <width>0</width>
+          <height>200</height>
          </size>
         </property>
        </widget>
@@ -381,16 +381,17 @@ Selection</string>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>200</height>
+         </size>
+        </property>
        </widget>
       </item>
      </layout>
     </item>
    </layout>
-   <zorder>layoutWidget</zorder>
-   <zorder>layoutWidget_2</zorder>
-   <zorder>layoutWidget_3</zorder>
-   <zorder>layoutWidget_4</zorder>
-   <zorder>groupBox_2</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

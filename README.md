@@ -10,4 +10,13 @@ The application is written in C++ using the Qt framework and runs on all major p
 
 ## Building from source
 
-If you want to build PeakMan from source you need Qt 5.x ([qt.io](http://www.qt.io/download/)). On Windows, be sure to install gcc together with Qt. On Mac OS X you need to have Xcode installed. The easiest way then is to open the `peakman.pro` file in the `src` folder with Qt Creator and compile PeakMan from there.
+If you want to build PeakMan from source you need to have Qt 5.x ([qt.io](http://www.qt.io/download/)) installed. The easiest way then is to open the `peakman.pro` file in the `src` folder with Qt Creator and compile PeakMan from there.
+
+## Windows
+Be sure to install gcc together with Qt.
+
+## Mac OS X
+You need to have Xcode installed.
+
+## Linux
+You might need to install further dependencies such as `mesa-common-dev` (build error `fatal error: GL/gl.h: No such file or directory`) or `libgl1-mesa-dev` (build error `cannot find -lGL`).

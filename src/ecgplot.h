@@ -36,6 +36,7 @@ public:
     QCPItemStraightLine* insertNewPeak(double position);
     void insertPeakAtClickPos(QPoint position);
     void insertPeakAtTimePoint(double position);
+    void insertPeaksFromVector(QVector<double> peaks_pos);
     void deletePeak(QCPAbstractItem *peak);
     void deletePeaks(QList<QCPAbstractItem*> peaksToDelete);
     void clearPeaks();

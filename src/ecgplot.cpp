@@ -219,6 +219,16 @@ void ECGPlot::insertPeakAtTimePoint(double position)
     }
 }
 
+void ECGPlot::insertPeaksFromVector(QVector<double> peaks_pos)
+{
+    for(int i = 0; i < peaks_pos.size(); i++)
+    {
+        peaks.append(insertNewPeak(peaks_pos[i]));
+    }
+
+    replot();
+}
+
 void ECGPlot::deletePeak(QCPAbstractItem *peak)
 {
     peaks.removeOne(qobject_cast<QCPItemStraightLine*>(peak));

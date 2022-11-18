@@ -416,7 +416,27 @@ void MainWindow::openPeaksFile()
 
     file.close();
 
+    ui->ecgPlot->insertPeaksFromVector(peaks_x);
+
     // Insert peaks in ecgplot
+    // Create a function in ecgplot.cpp which takes the peaks_x vector
+    // from here and fills the peaks with peaks.append(insertNewPeak(mxpos))
+
+    // Plot interbeat intervals and histogram
+    setupIbiPlot();
+
+    // Reset IBI plot ranges
+    ui->ibiPlot->resetView();
+
+    // Enable buttons
+    ui->menuSavePeakPositions->setEnabled(true);
+    ui->menuSaveInterbeatIntervals->setEnabled(true);
+    ui->updateIbiButton->setEnabled(true);
+    ui->resetIbiViewButton->setEnabled(true);
+    ui->artifactDetectionPushButton->setEnabled(true);
+    ui->insertMissingPeaksButton->setEnabled(true);
+
+    ui->statusBar->showMessage("File opened", 2000);
 }
 
 void MainWindow::openIbiFile()

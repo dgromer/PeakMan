@@ -75,6 +75,8 @@ private:
 
     bool exportPeaksToFile(const QString &filename);
     bool exportIbiToFile(const QString &filename, bool includeStartEnd);
+    QString buildOverwriteMessage(bool peaksExists, bool ibiExists,
+                                  const QString &peaksFile, const QString &ibiFile);
     void dragEnterEvent(QDragEnterEvent *event); // Allows to drag something into the application
     void dropEvent(QDropEvent *event); // Checks the dropped file and opens it
 

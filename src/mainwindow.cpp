@@ -20,6 +20,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QDebug>
+#include <QMessageBox>
+#include <QFile>
+#include <QFileInfo>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -199,6 +202,41 @@ bool MainWindow::exportIbiToFile(const QString &filename, bool includeStartEnd)
     return true;
 }
 
+QString MainWindow::buildOverwriteMessage(bool peaksExists, bool ibiExists,
+                                          const QString &peaksFile,
+                                          const QString &ibiFile)
+{
+    QFileInfo peaksInfo(peaksFile);
+    QFileInfo ibiInfo(ibiFile);
+
+    QString message;
+
+    if (peaksExists && ibiExists)
+    {
+        // Use HTML list formatting for clean rendering without wrapping
+        message = "<p>The following files already exist:</p>"
+                  "<ul>"
+                  "<li>" + peaksInfo.fileName() + "</li>"
+                  "<li>" + ibiInfo.fileName() + "</li>"
+                  "</ul>"
+                  "<p>Do you want to overwrite them?</p>";
+    }
+    else if (peaksExists)
+    {
+        message = "<p>The file <b>" + peaksInfo.fileName() +
+                  "</b> already exists.</p>"
+                  "<p>Do you want to overwrite it?</p>";
+    }
+    else // ibiExists
+    {
+        message = "<p>The file <b>" + ibiInfo.fileName() +
+                  "</b> already exists.</p>"
+                  "<p>Do you want to overwrite it?</p>";
+    }
+
+    return message;
+}
+
 void MainWindow::exportData()
 {
     // Generate default base filename from current ECG file
@@ -215,6 +253,31 @@ void MainWindow::exportData()
     // Generate output filenames
     QString peaksFileName = baseFileName + "_peaks.txt";
     QString ibiFileName = baseFileName + "_ibi.txt";
+
+    // Check if files exist and confirm overwrite if necessary
+    bool peaksExists = QFile::exists(peaksFileName);
+    bool ibiExists = QFile::exists(ibiFileName);
+
+    if (peaksExists || ibiExists)
+    {
+        QString message = buildOverwriteMessage(peaksExists, ibiExists,
+                                                peaksFileName, ibiFileName);
+
+        // Create message box with explicit configuration
+        QMessageBox msgBox(QMessageBox::Question, "Confirm Overwrite", message,
+                           QMessageBox::Yes | QMessageBox::No, this);
+        msgBox.setTextFormat(Qt::RichText);  // Enable HTML rendering
+
+        QMessageBox::StandardButton reply =
+            (QMessageBox::StandardButton)msgBox.exec();
+
+        if (reply == QMessageBox::No)
+        {
+            // User canceled, abort export
+            ui->statusBar->showMessage("Export canceled", 2000);
+            return;
+        }
+    }
 
     // Read includeStartEnd setting
     QSettings settings(QDir::currentPath() + "/peakman.ini", QSettings::IniFormat);

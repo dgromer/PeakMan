@@ -24,7 +24,7 @@
 #include "qcustomplot.h"
 #include "ecgplot.h"
 #include "openfiledialog.h"
-#include "saveinterbeatintervalsdialog.h"
+#include "settingsdialog.h"
 
 namespace Ui {
 class MainWindow;
@@ -47,8 +47,8 @@ private slots:
 
     void getFileName();
     void closeCurrentFile();
-    void saveInterbeatIntervals();
-    void savePeakPositions();
+    void exportData();
+    void openSettings();
 
     void peakDetection();
     // TODO: MOVE TO ECGPLOT
@@ -72,6 +72,9 @@ private:
     void openEcgFile(); // Read a text file with ecg data
     void openPeaksFile();
     void openIbiFile();
+
+    bool exportPeaksToFile(const QString &filename);
+    bool exportIbiToFile(const QString &filename, bool includeStartEnd);
     void dragEnterEvent(QDragEnterEvent *event); // Allows to drag something into the application
     void dropEvent(QDropEvent *event); // Checks the dropped file and opens it
 

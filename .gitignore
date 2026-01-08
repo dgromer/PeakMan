@@ -1,4 +1,6 @@
 /build*
+src/build
 *.bak
 src/peakman.pro.user
+src/.qtcreator
 *.autosave

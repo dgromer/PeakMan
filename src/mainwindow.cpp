@@ -33,11 +33,11 @@ MainWindow::MainWindow(QWidget *parent) :
     // Create connections for menu items
     connect(ui->menuOpenFile, SIGNAL(triggered()), this, SLOT(getFileName()));
     connect(ui->menuCloseCurrentFile, SIGNAL(triggered()), this, SLOT(closeCurrentFile()));
-    connect(ui->menuSavePeakPositions, SIGNAL(triggered()), this, SLOT(savePeakPositions()));
-    connect(ui->menuSaveInterbeatIntervals, SIGNAL(triggered()), this, SLOT(saveInterbeatIntervals()));
+    connect(ui->menuExportData, SIGNAL(triggered()), this, SLOT(exportData()));
+    connect(ui->menuSettings, SIGNAL(triggered()), this, SLOT(openSettings()));
     connect(ui->menuAboutPeakMan, SIGNAL(triggered(bool)), this, SLOT(aboutPeakMan()));
 
-    // Configure scroll bars
+    // Configure scroll bars for ECG plot
     ui->horizontalScrollBar->setRange(1000, 2000);
     ui->verticalSlider->setRange(10, 20000);
     ui->verticalSlider->setSliderPosition(5000);
@@ -62,7 +62,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Update interbeat intervals
     connect(ui->updateIbiButton, SIGNAL(clicked()), this, SLOT(setupIbiPlot()));
-    connect(ui->ibiPlot, SIGNAL(setupHistPlot(QVector<double>, double)), ui->histPlot, SLOT(setup(QVector<double>, double)));
     connect(ui->ecgPlot, SIGNAL(peaksChanged()), this, SLOT(setupIbiPlot()));
 
     // Apply correction button and jump to position button
@@ -131,44 +130,50 @@ void MainWindow::closeCurrentFile()
     // Clear plots
     ui->ecgPlot->clear();
     ui->ibiPlot->clear();
-    ui->histPlot->clear();
 
     // Disable buttons
     ui->detectPeaksButton->setEnabled(false);
     ui->menuCloseCurrentFile->setEnabled(false);
-    ui->menuSavePeakPositions->setEnabled(false);
-    ui->menuSaveInterbeatIntervals->setEnabled(false);
+    ui->menuExportData->setEnabled(false);
 
     openFileName = "";
 }
 
-void MainWindow::saveInterbeatIntervals()
+bool MainWindow::exportPeaksToFile(const QString &filename)
 {
-    // New filename prototype
-    QFileInfo fn(openFileName);
-    QString newFn = fn.canonicalPath() + QDir::separator() + fn.baseName() + "_ibi.txt";
+    // Open new file
+    QFile outFile(filename);
+    if (!outFile.open(QIODevice::WriteOnly | QIODevice::Text))
+        return false;
 
-    // Get new filename
-    QString outFileName = QFileDialog::getSaveFileName(this, "Save As", newFn);
+    // Write peaks to file
+    QTextStream out(&outFile);
+    QLinkedList<QCPItemStraightLine*> peaks = ui->ecgPlot->getPeaks();
+    QLinkedList<QCPItemStraightLine*>::iterator iter;
 
-    // Check if dialog was canceled
-    if (outFileName == "") return;
+    for(iter = peaks.begin(); iter != peaks.end(); iter++)
+    {
+        out << (*iter)->point1->key() << "\n";
+    }
 
-    // Options dialog for saving interbeat intervals
-    SaveInterbeatIntervalsDialog dialog(this);
-    dialog.exec();
+    // Close
+    outFile.flush();
+    outFile.close();
 
-    // Stop here if dialog was canceled
-    if (dialog.result() == QDialog::Rejected) return;
+    return true;
+}
 
+bool MainWindow::exportIbiToFile(const QString &filename, bool includeStartEnd)
+{
     // Create new file and open it
-    QFile outFile(outFileName);
-    if (!outFile.open(QIODevice::WriteOnly | QIODevice::Text)) return;
+    QFile outFile(filename);
+    if (!outFile.open(QIODevice::WriteOnly | QIODevice::Text))
+        return false;
 
-    // Paste text
+    // Write IBI data to file
     QTextStream out(&outFile);
 
-    if (dialog.includeSignalStartEnd())
+    if (includeStartEnd)
     {
         // Include signal start to first peak as interbeat interval
         out << ui->ecgPlot->getPeaks().first()->point1->key() * 1000 << "\n";
@@ -181,9 +186,9 @@ void MainWindow::saveInterbeatIntervals()
         out << ibi_y[i] << "\n";
     }
 
-    if (dialog.includeSignalStartEnd())
+    if (includeStartEnd)
     {
-        // Include last peak to signal and as interbeat interval
+        // Include last peak to signal end as interbeat interval
         out << ui->ecgPlot->getEcg_x().last() * 1000 - ui->ecgPlot->getPeaks().last()->point1->key() * 1000 << "\n";
     }
 
@@ -191,57 +196,79 @@ void MainWindow::saveInterbeatIntervals()
     outFile.flush();
     outFile.close();
 
-    ui->statusBar->showMessage("Interbeat intervals exported", 2000);
+    return true;
 }
 
-void MainWindow::savePeakPositions()
+void MainWindow::exportData()
 {
-    // New filename prototype
+    // Generate default base filename from current ECG file
     QFileInfo fn(openFileName);
-    QString newFn = fn.canonicalPath() + QDir::separator() + fn.baseName() + "_peaks.txt";
+    QString defaultBase = fn.canonicalPath() + QDir::separator() + fn.baseName();
 
-    // Get new filename
-    QString outFileName = QFileDialog::getSaveFileName(this, "Save As", newFn);
+    // Show single file dialog to choose base filename
+    QString baseFileName = QFileDialog::getSaveFileName(this, "Export Data", defaultBase);
 
     // Check if dialog was canceled
-    if (outFileName == "") return;
+    if (baseFileName.isEmpty())
+        return;
 
-    // Open new file
-    QFile outFile(outFileName);
-    if (!outFile.open(QIODevice::WriteOnly | QIODevice::Text)) return;
+    // Generate output filenames
+    QString peaksFileName = baseFileName + "_peaks.txt";
+    QString ibiFileName = baseFileName + "_ibi.txt";
 
-    // Paste text
-    QTextStream out(&outFile);
+    // Read includeStartEnd setting
+    QSettings settings(QDir::currentPath() + "/peakman.ini", QSettings::IniFormat);
+    bool includeStartEnd = settings.value("includeStartEnd", true).toBool();
 
-    QLinkedList<QCPItemStraightLine*> peaks = ui->ecgPlot->getPeaks();
-    QLinkedList<QCPItemStraightLine*>::iterator iter;
+    // Export both files
+    bool peaksSuccess = exportPeaksToFile(peaksFileName);
+    bool ibiSuccess = exportIbiToFile(ibiFileName, includeStartEnd);
 
-    // Write peaks to file
-    for(iter = peaks.begin(); iter != peaks.end(); iter++)
+    // Show appropriate status message
+    if (peaksSuccess && ibiSuccess)
     {
-        out << (*iter)->point1->key() << "\n";
+        ui->statusBar->showMessage("Peak positions and interbeat intervals exported", 2000);
     }
+    else if (peaksSuccess)
+    {
+        ui->statusBar->showMessage("Export partially successful: peaks exported, IBI failed", 3000);
+    }
+    else if (ibiSuccess)
+    {
+        ui->statusBar->showMessage("Export partially successful: IBI exported, peaks failed", 3000);
+    }
+    else
+    {
+        ui->statusBar->showMessage("Export failed: unable to write files", 3000);
+    }
+}
 
-    // Close
-    outFile.flush();
-    outFile.close();
+void MainWindow::openSettings()
+{
+    QSettings settings(QDir::currentPath() + "/peakman.ini", QSettings::IniFormat);
 
-    ui->statusBar->showMessage("Peak positions exported", 2000);
+    SettingsDialog dialog(this);
+    dialog.setIncludeStartEnd(settings.value("includeStartEnd", true).toBool());
+
+    if (dialog.exec() == QDialog::Accepted)
+    {
+        // Save the setting
+        settings.setValue("includeStartEnd", dialog.getIncludeStartEnd());
+    }
 }
 
 void MainWindow::peakDetection()
 {
     ui->ecgPlot->peakdet(ui->localThresholdSpinBox->value(), ui->globalThresholdSpinBox->value(), ui->minRRIntervallSpinBox->value());
 
-    // Plot interbeat intervals and histogram
+    // Plot interbeat intervals
     setupIbiPlot();
 
     // Reset IBI plot ranges
     ui->ibiPlot->resetView();
 
     // Enable buttons
-    ui->menuSavePeakPositions->setEnabled(true);
-    ui->menuSaveInterbeatIntervals->setEnabled(true);
+    ui->menuExportData->setEnabled(true);
     ui->updateIbiButton->setEnabled(true);
     ui->resetIbiViewButton->setEnabled(true);
     ui->artifactDetectionPushButton->setEnabled(true);
@@ -296,7 +323,7 @@ void MainWindow::insertMissingPeaks()
     ui->ecgPlot->replot();
 
     // TODO: don't reset viewport here
-    // Plot interbeat intervals and histogram
+    // Plot interbeat intervals
     //ui->ibiPlot->setup(ui->ecgPlot->getPeaks());
     ui->ibiPlot->setup(ui->ecgPlot->getPeaks(), false);
 }
@@ -416,21 +443,17 @@ void MainWindow::openPeaksFile()
 
     file.close();
 
+    // Insert peaks in ecgplot
     ui->ecgPlot->insertPeaksFromVector(peaks_x);
 
-    // Insert peaks in ecgplot
-    // Create a function in ecgplot.cpp which takes the peaks_x vector
-    // from here and fills the peaks with peaks.append(insertNewPeak(mxpos))
-
-    // Plot interbeat intervals and histogram
+    // Plot interbeat intervals
     setupIbiPlot();
 
     // Reset IBI plot ranges
     ui->ibiPlot->resetView();
 
     // Enable buttons
-    ui->menuSavePeakPositions->setEnabled(true);
-    ui->menuSaveInterbeatIntervals->setEnabled(true);
+    ui->menuExportData->setEnabled(true);
     ui->updateIbiButton->setEnabled(true);
     ui->resetIbiViewButton->setEnabled(true);
     ui->artifactDetectionPushButton->setEnabled(true);

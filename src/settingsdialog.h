@@ -17,24 +17,28 @@
  * along with PeakMan.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef HISTPLOT_H
-#define HISTPLOT_H
+#ifndef SETTINGSDIALOG_H
+#define SETTINGSDIALOG_H
 
-#include "qcustomplot.h"
+#include <QDialog>
 
-class HistPlot : public QCustomPlot
+namespace Ui {
+class SettingsDialog;
+}
+
+class SettingsDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit HistPlot(QWidget *parent);
-    ~HistPlot();
+    explicit SettingsDialog(QWidget *parent = 0);
+    ~SettingsDialog();
 
-    void plot(QVector<double> ibis, double maxIbi);
-    void clear();
+    bool getIncludeStartEnd() const;
+    void setIncludeStartEnd(bool include);
 
-public slots:
-    void setup(QVector<double> ibis, double maxIbi);
+private:
+    Ui::SettingsDialog *ui;
 };
 
-#endif // HISTPLOT_H
+#endif // SETTINGSDIALOG_H

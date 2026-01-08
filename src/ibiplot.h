@@ -55,7 +55,6 @@ signals:
     void ibiSelected(bool);
     void ibiSelectedDoubleClick();
     void ibiSelectedInsertMissingPeaks();
-    void setupHistPlot(QVector<double>, double);
 
 private slots:
     void mousePressEvent(QMouseEvent *event);

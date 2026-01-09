@@ -197,6 +197,7 @@ void IBIPlot::setup(QLinkedList<QCPItemStraightLine *> peaks, bool set_range)
     computeInterbeatIntervals(peaks);
     plot(ibi_x, ibi_y, set_range);
     setTracer();
+    artifactDetection();
 }
 
 void IBIPlot::artifactDetection()

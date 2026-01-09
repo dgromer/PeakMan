@@ -68,7 +68,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->ecgPlot, SIGNAL(peaksChanged()), this, SLOT(setupIbiPlot()));
 
     // Apply correction button and jump to position button
-    connect(ui->artifactDetectionPushButton, SIGNAL(clicked()), ui->ibiPlot, SLOT(artifactDetection()));
     connect(ui->insertMissingPeaksButton, SIGNAL(clicked()), this, SLOT(insertMissingPeaks()));
     connect(ui->ibiPlot, SIGNAL(ibiSelectedInsertMissingPeaks()), this, SLOT(insertMissingPeaks()));
     connect(ui->ibiPlot, SIGNAL(ibiSelected(bool)), ui->jumpToSelectionButton, SLOT(setEnabled(bool)));
@@ -334,7 +333,6 @@ void MainWindow::peakDetection()
     ui->menuExportData->setEnabled(true);
     ui->updateIbiButton->setEnabled(true);
     ui->resetIbiViewButton->setEnabled(true);
-    ui->artifactDetectionPushButton->setEnabled(true);
     ui->insertMissingPeaksButton->setEnabled(true);
 }
 
@@ -519,7 +517,6 @@ void MainWindow::openPeaksFile()
     ui->menuExportData->setEnabled(true);
     ui->updateIbiButton->setEnabled(true);
     ui->resetIbiViewButton->setEnabled(true);
-    ui->artifactDetectionPushButton->setEnabled(true);
     ui->insertMissingPeaksButton->setEnabled(true);
 
     ui->statusBar->showMessage("File opened", 2000);

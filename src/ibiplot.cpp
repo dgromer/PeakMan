@@ -66,6 +66,7 @@ IBIPlot::~IBIPlot()
 void IBIPlot::setTracer()
 {
     selection->setGraph(ibi);
+    selection->setVisible(false);
 }
 
 void IBIPlot::unsetTracer()

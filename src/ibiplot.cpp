@@ -18,6 +18,7 @@
  */
 
 #include "ibiplot.h"
+#include <limits>
 
 IBIPlot::IBIPlot(QWidget *parent) : QCustomPlot(parent)
 {
@@ -218,7 +219,42 @@ void IBIPlot::artifactDetection()
     plotArtifacts(artifacts_x, artifacts_y);
 }
 
-// TODO: improve selecting mechanism here: should also look at y-position of click (maybe nearest point of ibi line)
+int IBIPlot::findNearestDataPoint(const QPoint &pixelPos) const
+{
+    // Check if we have data to search
+    if (ibi_x.isEmpty() || ibi_y.isEmpty())
+        return -1;
+
+    // Convert click position to QPointF
+    QPointF clickPixel(pixelPos);
+
+    // Track minimum distance (squared) and the index
+    double minDistSqr = std::numeric_limits<double>::max();
+    int nearestIndex = -1;
+
+    // Iterate through all data points
+    for (int i = 0; i < ibi_x.size(); ++i)
+    {
+        // Convert data point coordinates to pixel space
+        double dataX = xAxis->coordToPixel(ibi_x[i]);
+        double dataY = yAxis->coordToPixel(ibi_y[i]);
+
+        // Calculate squared distance
+        double dx = clickPixel.x() - dataX;
+        double dy = clickPixel.y() - dataY;
+        double distSqr = dx * dx + dy * dy;
+
+        // Update if this is closer
+        if (distSqr < minDistSqr)
+        {
+            minDistSqr = distSqr;
+            nearestIndex = i;
+        }
+    }
+
+    return nearestIndex;
+}
+
 // Set tracer on mouse click
 void IBIPlot::mousePressEvent(QMouseEvent *event)
 {
@@ -226,12 +262,20 @@ void IBIPlot::mousePressEvent(QMouseEvent *event)
     {
         if (plottableAt(event->pos()))
         {
-            double pos = qRound(xAxis->pixelToCoord((double) event->x()));
+            // Find nearest data point by 2D distance
+            int nearestIndex = findNearestDataPoint(event->pos());
 
-            selection->setGraphKey(pos);
-            selection->setVisible(true);
-
-            emit ibiSelected(true);
+            if (nearestIndex >= 0)
+            {
+                selection->setGraphKey(ibi_x[nearestIndex]);
+                selection->setVisible(true);
+                emit ibiSelected(true);
+            }
+            else
+            {
+                selection->setVisible(false);
+                emit ibiSelected(false);
+            }
         }
         else
         {

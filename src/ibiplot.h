@@ -62,6 +62,8 @@ private slots:
     void keyPressEvent(QKeyEvent *event);
 
 private:
+    int findNearestDataPoint(const QPoint &pixelPos) const;
+
     QCPItemTracer *selection;
 
     QCPGraph *ibi;

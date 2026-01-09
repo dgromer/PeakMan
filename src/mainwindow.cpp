@@ -63,8 +63,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Peak detection
     connect(ui->detectPeaksButton, SIGNAL(clicked()), this, SLOT(peakDetection()));
 
-    // Update interbeat intervals
-    connect(ui->updateIbiButton, SIGNAL(clicked()), this, SLOT(setupIbiPlot()));
+    // Update interbeat intervals automatically when peaks change
     connect(ui->ecgPlot, SIGNAL(peaksChanged()), this, SLOT(setupIbiPlot()));
 
     // Apply correction button and jump to position button
@@ -331,7 +330,6 @@ void MainWindow::peakDetection()
 
     // Enable buttons
     ui->menuExportData->setEnabled(true);
-    ui->updateIbiButton->setEnabled(true);
     ui->resetIbiViewButton->setEnabled(true);
     ui->insertMissingPeaksButton->setEnabled(true);
 }
@@ -515,7 +513,6 @@ void MainWindow::openPeaksFile()
 
     // Enable buttons
     ui->menuExportData->setEnabled(true);
-    ui->updateIbiButton->setEnabled(true);
     ui->resetIbiViewButton->setEnabled(true);
     ui->insertMissingPeaksButton->setEnabled(true);
 

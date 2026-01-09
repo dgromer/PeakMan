@@ -443,6 +443,9 @@ Selection</string>
    <property name="text">
     <string>Close current file</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
   </action>
   <action name="menuResetView">
    <property name="text">
@@ -452,6 +455,9 @@ Selection</string>
   <action name="menuOpenFile">
    <property name="text">
     <string>Open File</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
    </property>
   </action>
   <action name="menuExportData">

@@ -90,6 +90,8 @@ private:
     QCPItemStraightLine *globalThresholdLine;
     bool moveGlobalThresholdLine;
 
+    bool isDoubleClick;
+
     QCPItemRect *highlightRect;
     int highlightRectOpacity;
     QTimer *highlightTimer;

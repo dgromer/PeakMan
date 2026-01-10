@@ -26,6 +26,9 @@ ECGPlot::ECGPlot(QWidget *parent) : QCustomPlot(parent)
     // Initialize rubberband
     rubberBand = 0;
 
+    // Variable to track if the current click is a double-click
+    isDoubleClick = false;
+
     // Initialize layers
     addLayer("peaks");
     addLayer("globalthresholdline");
@@ -340,6 +343,12 @@ void ECGPlot::mousePressEvent(QMouseEvent *event)
 
 void ECGPlot::mouseReleaseEvent(QMouseEvent *event)
 {
+    if (isDoubleClick)
+    {
+        isDoubleClick = false;
+        return;
+    }
+
     if (moveGlobalThresholdLine)
     {
         setCursor(Qt::OpenHandCursor);
@@ -439,7 +448,10 @@ void ECGPlot::mouseDoubleClickEvent(QMouseEvent *event)
     {
         //emit insertPeakAtPos(event->pos());
         insertPeakAtClickPos(event->pos());
+        isDoubleClick = true;
     }
+
+    replot();
 
     emit peaksChanged();
 

@@ -45,6 +45,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->verticalSlider->setRange(10, 20000);
     ui->verticalSlider->setSliderPosition(5000);
 
+    // Zoom buttons for ECG plot
+    connect(ui->zoomEcgInButton, SIGNAL(clicked()), this, SLOT(zoomEcgIn()));
+    connect(ui->zoomEcgOutButton, SIGNAL(clicked()), this, SLOT(zoomEcgOut()));
+
+    // Zoom buttons for IBI plot
+    connect(ui->zoomIbiInButton, SIGNAL(clicked()), this, SLOT(zoomIbiIn()));
+    connect(ui->zoomIbiOutButton, SIGNAL(clicked()), this, SLOT(zoomIbiOut()));
+
     // Create connection between axes and scroll bars
     connect(ui->horizontalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(horzScrollBarChanged(int)));
     connect(ui->ecgPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(xAxisChanged(QCPRange)));
@@ -74,10 +82,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->jumpToSelectionButton, SIGNAL(clicked()), this, SLOT(jumpToSelection()));
     connect(ui->ibiPlot, SIGNAL(ibiSelectedDoubleClick()), this, SLOT(jumpToSelection()));
     connect(ui->resetIbiViewButton, SIGNAL(clicked()), ui->ibiPlot, SLOT(resetView()));
-
-    // Zoom buttons
-    connect(ui->zoomEcgInButton, SIGNAL(clicked()), this, SLOT(zoomEcgIn()));
-    connect(ui->zoomEcgOutButton, SIGNAL(clicked()), this, SLOT(zoomEcgOut()));
 
     // Initialize sample rate label
     ui->ecgPlot->setSampleRate(0);
@@ -152,6 +156,36 @@ void MainWindow::zoomEcgOut()
 
     // Replot to show changes
     ui->ecgPlot->replot();
+}
+
+void MainWindow::zoomIbiIn()
+{
+    // Use the same zoom factor as QCustomPlot's mouse wheel (0.85)
+    const double zoomFactor = 0.85;
+
+    // Get current range centers to zoom around the center of visible area
+    double xCenter = ui->ibiPlot->xAxis->range().center();
+
+    // Scale both axes (factor < 1 makes range smaller = zoom in)
+    ui->ibiPlot->xAxis->scaleRange(zoomFactor, xCenter);
+
+    // Replot to show changes
+    ui->ibiPlot->replot();
+}
+
+void MainWindow::zoomIbiOut()
+{
+    // Use inverse of zoom factor for zoom out (1/0.85 ≈ 1.176)
+    const double zoomFactor = 1.0 / 0.85;
+
+    // Get current range centers to zoom around the center of visible area
+    double xCenter = ui->ibiPlot->xAxis->range().center();
+
+    // Scale both axes (factor > 1 makes range larger = zoom out)
+    ui->ibiPlot->xAxis->scaleRange(zoomFactor, xCenter);
+
+    // Replot to show changes
+    ui->ibiPlot->replot();
 }
 
 void MainWindow::getFileName()

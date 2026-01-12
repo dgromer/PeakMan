@@ -162,7 +162,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="zoomGroupBox">
+       <widget class="QGroupBox" name="zoomEcgGroupBox">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -307,6 +307,41 @@ Selection</string>
         <property name="text">
          <string>Insert Missing Peaks at Selection</string>
         </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="zoomIbiGroupBox">
+        <property name="minimumSize">
+         <size>
+          <width>80</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="title">
+         <string>Zoom</string>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QPushButton" name="zoomIbiInButton">
+           <property name="toolTip">
+            <string>Zoom in on ECG plot</string>
+           </property>
+           <property name="text">
+            <string>+</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="zoomIbiOutButton">
+           <property name="toolTip">
+            <string>Zoom in on ECG plot</string>
+           </property>
+           <property name="text">
+            <string>-</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>

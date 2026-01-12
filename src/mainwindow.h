@@ -47,6 +47,8 @@ private slots:
 
     void zoomEcgIn();
     void zoomEcgOut();
+    void zoomIbiIn();
+    void zoomIbiOut();
 
     void getFileName();
     void closeCurrentFile();

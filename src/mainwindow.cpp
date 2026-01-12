@@ -417,6 +417,28 @@ void MainWindow::openSettings()
 
 void MainWindow::peakDetection()
 {
+    // Check if peaks already exist
+    if (!ui->ecgPlot->getPeaks().isEmpty())
+    {
+        // Create confirmation dialog
+        QMessageBox msgBox(QMessageBox::Question,
+                          "Confirm Peak Detection",
+                          "Existing peaks will be overwritten. Do you want to continue?",
+                          QMessageBox::Yes | QMessageBox::No,
+                          this);
+
+        QMessageBox::StandardButton reply =
+            (QMessageBox::StandardButton)msgBox.exec();
+
+        if (reply == QMessageBox::No)
+        {
+            // User canceled, abort peak detection
+            ui->statusBar->showMessage("Peak detection canceled", 2000);
+            return;
+        }
+    }
+
+    // Proceed with peak detection
     ui->ecgPlot->peakdet(ui->localThresholdSpinBox->value(), ui->globalThresholdSpinBox->value(), ui->minRRIntervallSpinBox->value());
 
     // Plot interbeat intervals

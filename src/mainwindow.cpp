@@ -75,6 +75,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->ibiPlot, SIGNAL(ibiSelectedDoubleClick()), this, SLOT(jumpToSelection()));
     connect(ui->resetIbiViewButton, SIGNAL(clicked()), ui->ibiPlot, SLOT(resetView()));
 
+    // Zoom buttons
+    connect(ui->zoomEcgInButton, SIGNAL(clicked()), this, SLOT(zoomEcgIn()));
+    connect(ui->zoomEcgOutButton, SIGNAL(clicked()), this, SLOT(zoomEcgOut()));
+
     // Initialize sample rate label
     ui->ecgPlot->setSampleRate(0);
     sampleRateLabel = new QLabel(this);
@@ -113,6 +117,40 @@ void MainWindow::yAxisChanged(QCPRange range)
 void MainWindow::vertSliderChanged(int value)
 {
     ui->ecgPlot->yAxis->setRange(ui->ecgPlot->yAxis->range().center(), value, Qt::AlignCenter);
+    ui->ecgPlot->replot();
+}
+
+void MainWindow::zoomEcgIn()
+{
+    // Use the same zoom factor as QCustomPlot's mouse wheel (0.85)
+    const double zoomFactor = 0.85;
+
+    // Get current range centers to zoom around the center of visible area
+    double xCenter = ui->ecgPlot->xAxis->range().center();
+    double yCenter = ui->ecgPlot->yAxis->range().center();
+
+    // Scale both axes (factor < 1 makes range smaller = zoom in)
+    ui->ecgPlot->xAxis->scaleRange(zoomFactor, xCenter);
+    ui->ecgPlot->yAxis->scaleRange(zoomFactor, yCenter);
+
+    // Replot to show changes
+    ui->ecgPlot->replot();
+}
+
+void MainWindow::zoomEcgOut()
+{
+    // Use inverse of zoom factor for zoom out (1/0.85 ≈ 1.176)
+    const double zoomFactor = 1.0 / 0.85;
+
+    // Get current range centers to zoom around the center of visible area
+    double xCenter = ui->ecgPlot->xAxis->range().center();
+    double yCenter = ui->ecgPlot->yAxis->range().center();
+
+    // Scale both axes (factor > 1 makes range larger = zoom out)
+    ui->ecgPlot->xAxis->scaleRange(zoomFactor, xCenter);
+    ui->ecgPlot->yAxis->scaleRange(zoomFactor, yCenter);
+
+    // Replot to show changes
     ui->ecgPlot->replot();
 }
 

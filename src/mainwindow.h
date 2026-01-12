@@ -45,6 +45,9 @@ private slots:
     void yAxisChanged(QCPRange range);
     void vertSliderChanged(int value);
 
+    void zoomEcgIn();
+    void zoomEcgOut();
+
     void getFileName();
     void closeCurrentFile();
     void exportData();

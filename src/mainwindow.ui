@@ -162,6 +162,47 @@
        </widget>
       </item>
       <item>
+       <widget class="QGroupBox" name="zoomGroupBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>80</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="title">
+         <string>Zoom</string>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_zoom">
+         <item>
+          <widget class="QPushButton" name="zoomEcgInButton">
+           <property name="toolTip">
+            <string>Zoom in on ECG plot</string>
+           </property>
+           <property name="text">
+            <string>+</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="zoomEcgOutButton">
+           <property name="toolTip">
+            <string>Zoom out on ECG plot</string>
+           </property>
+           <property name="text">
+            <string>-</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
        <spacer name="horizontalSpacer_2">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>

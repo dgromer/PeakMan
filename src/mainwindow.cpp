@@ -70,6 +70,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->insertMissingPeaksButton, SIGNAL(clicked()), this, SLOT(insertMissingPeaks()));
     connect(ui->ibiPlot, SIGNAL(ibiSelectedInsertMissingPeaks()), this, SLOT(insertMissingPeaks()));
     connect(ui->ibiPlot, SIGNAL(ibiSelected(bool)), ui->jumpToSelectionButton, SLOT(setEnabled(bool)));
+    connect(ui->ibiPlot, SIGNAL(ibiSelected(bool)), this, SLOT(toggleInsertMissingPeaksButton(bool)));
     connect(ui->jumpToSelectionButton, SIGNAL(clicked()), this, SLOT(jumpToSelection()));
     connect(ui->ibiPlot, SIGNAL(ibiSelectedDoubleClick()), this, SLOT(jumpToSelection()));
     connect(ui->resetIbiViewButton, SIGNAL(clicked()), ui->ibiPlot, SLOT(resetView()));
@@ -331,7 +332,6 @@ void MainWindow::peakDetection()
     // Enable buttons
     ui->menuExportData->setEnabled(true);
     ui->resetIbiViewButton->setEnabled(true);
-    ui->insertMissingPeaksButton->setEnabled(true);
 }
 
 void MainWindow::setupIbiPlot()
@@ -357,6 +357,27 @@ void MainWindow::jumpToSelection()
 
     // Add highlight line
     ui->ecgPlot->showIbiHighlightRect(key, ui->ibiPlot->getSelectionPosY() / 1000);
+}
+
+void MainWindow::toggleInsertMissingPeaksButton(bool enable)
+{
+    if (enable && ui->ibiPlot->getSelectionPosX() > 1)
+    {
+        double artifact_size = ui->ibiPlot->getSelectionPosY() / 1000;
+        double ref = ui->ibiPlot->getReferenceInterval();
+
+        // Calculate number of new intervals
+        int n = qRound(artifact_size / ref);
+
+        if (n > 1)
+        {
+            ui->insertMissingPeaksButton->setEnabled(true);
+        }
+    }
+    else
+    {
+        ui->insertMissingPeaksButton->setEnabled(false);
+    }
 }
 
 void MainWindow::insertMissingPeaks()
@@ -385,6 +406,10 @@ void MainWindow::insertMissingPeaks()
     // Plot interbeat intervals
     //ui->ibiPlot->setup(ui->ecgPlot->getPeaks());
     ui->ibiPlot->setup(ui->ecgPlot->getPeaks(), false);
+
+    ui->jumpToSelectionButton->setEnabled(false);
+    ui->insertMissingPeaksButton->setChecked(false);
+    ui->insertMissingPeaksButton->setEnabled(false);
 }
 
 void MainWindow::aboutPeakMan()
@@ -514,7 +539,6 @@ void MainWindow::openPeaksFile()
     // Enable buttons
     ui->menuExportData->setEnabled(true);
     ui->resetIbiViewButton->setEnabled(true);
-    ui->insertMissingPeaksButton->setEnabled(true);
 
     ui->statusBar->showMessage("File opened", 2000);
 }

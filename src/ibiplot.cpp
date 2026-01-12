@@ -260,6 +260,8 @@ void IBIPlot::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton)
     {
+        bool bIbiSelected = false;
+
         if (plottableAt(event->pos()))
         {
             // Find nearest data point by 2D distance
@@ -269,22 +271,20 @@ void IBIPlot::mousePressEvent(QMouseEvent *event)
             {
                 selection->setGraphKey(ibi_x[nearestIndex]);
                 selection->setVisible(true);
-                emit ibiSelected(true);
+                bIbiSelected = true;
             }
             else
             {
                 selection->setVisible(false);
-                emit ibiSelected(false);
             }
         }
         else
         {
             selection->setVisible(false);
-
-            emit ibiSelected(false);
         }
 
         replot();
+        emit ibiSelected(bIbiSelected);
     }
 
     QCustomPlot::mousePressEvent(event);

@@ -60,6 +60,7 @@ private slots:
 
     void setupIbiPlot();
     void jumpToSelection(); // Highlight a selected interbeat interval in ecg view
+    void toggleInsertMissingPeaksButton(bool enable);
     void insertMissingPeaks(); // Subdivides an interbeat interval into shorter intervals
 
     void aboutPeakMan();

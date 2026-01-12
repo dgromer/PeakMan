@@ -45,6 +45,9 @@ private slots:
     void yAxisChanged(QCPRange range);
     void vertSliderChanged(int value);
 
+    void horzScrollBarIbiChanged(int value);
+    void xAxisIbiChanged(QCPRange range);
+
     void zoomEcgIn();
     void zoomEcgOut();
     void zoomIbiIn();

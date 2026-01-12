@@ -59,6 +59,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->ecgPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(yAxisChanged(QCPRange)));
     connect(ui->verticalSlider, SIGNAL(valueChanged(int)), this, SLOT(vertSliderChanged(int)));
 
+    // Create connection between IBI plot axes and scroll bar
+    connect(ui->horizontalScrollBarIbiPlot, SIGNAL(valueChanged(int)), this, SLOT(horzScrollBarIbiChanged(int)));
+    connect(ui->ibiPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(xAxisIbiChanged(QCPRange)));
+
     // Initialize axis range (and scroll bar positions via signals we just connected):
     ui->ecgPlot->xAxis->setRange(-.5, 20);
     ui->ecgPlot->yAxis->setRange(-1000, 3000);
@@ -122,6 +126,23 @@ void MainWindow::vertSliderChanged(int value)
 {
     ui->ecgPlot->yAxis->setRange(ui->ecgPlot->yAxis->range().center(), value, Qt::AlignCenter);
     ui->ecgPlot->replot();
+}
+
+void MainWindow::horzScrollBarIbiChanged(int value)
+{
+    // Check if replot is needed to avoid double-replot during drag
+    if (qAbs(ui->ibiPlot->xAxis->range().center() - value) > 0.01)
+    {
+        ui->ibiPlot->xAxis->setRange(value, ui->ibiPlot->xAxis->range().size(), Qt::AlignCenter);
+        ui->ibiPlot->replot();
+    }
+}
+
+void MainWindow::xAxisIbiChanged(QCPRange range)
+{
+    // Adjust position and size of scroll bar slider
+    ui->horizontalScrollBarIbiPlot->setValue(qRound(range.center()));
+    ui->horizontalScrollBarIbiPlot->setPageStep(qRound(range.size()));
 }
 
 void MainWindow::zoomEcgIn()
@@ -204,6 +225,9 @@ void MainWindow::closeCurrentFile()
     // Clear plots
     ui->ecgPlot->clear();
     ui->ibiPlot->clear();
+
+    // Reset scrollbars
+    ui->horizontalScrollBarIbiPlot->setRange(0, 100);  // Default range
 
     // Disable buttons
     ui->detectPeaksButton->setEnabled(false);
@@ -411,6 +435,10 @@ void MainWindow::setupIbiPlot()
     if (!ui->ecgPlot->getPeaks().isEmpty())
     {
         ui->ibiPlot->setup(ui->ecgPlot->getPeaks());
+
+        // Set scrollbar range to match IBI data size
+        int maxBeatIndex = ui->ibiPlot->getIbi_y().size();
+        ui->horizontalScrollBarIbiPlot->setRange(0, maxBeatIndex);
     }
 }
 

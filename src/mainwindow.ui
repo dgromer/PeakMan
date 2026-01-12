@@ -181,6 +181,12 @@
         <layout class="QHBoxLayout" name="horizontalLayout_zoom">
          <item>
           <widget class="QPushButton" name="zoomEcgInButton">
+           <property name="maximumSize">
+            <size>
+             <width>50</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Zoom in on ECG plot</string>
            </property>
@@ -191,6 +197,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="zoomEcgOutButton">
+           <property name="maximumSize">
+            <size>
+             <width>50</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Zoom out on ECG plot</string>
            </property>
@@ -325,6 +337,12 @@ Selection</string>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
           <widget class="QPushButton" name="zoomIbiInButton">
+           <property name="maximumSize">
+            <size>
+             <width>50</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Zoom in on ECG plot</string>
            </property>
@@ -335,6 +353,12 @@ Selection</string>
          </item>
          <item>
           <widget class="QPushButton" name="zoomIbiOutButton">
+           <property name="maximumSize">
+            <size>
+             <width>50</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Zoom in on ECG plot</string>
            </property>

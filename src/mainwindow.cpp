@@ -407,11 +407,16 @@ void MainWindow::openSettings()
 
     SettingsDialog dialog(this);
     dialog.setIncludeStartEnd(settings.value("includeStartEnd", true).toBool());
+    dialog.setArtifactThreshold(settings.value("artifactThreshold", 20.0).toDouble());
 
     if (dialog.exec() == QDialog::Accepted)
     {
-        // Save the setting
+        // Save the settings
         settings.setValue("includeStartEnd", dialog.getIncludeStartEnd());
+        settings.setValue("artifactThreshold", dialog.getArtifactThreshold());
+
+        // Apply artifact threshold to IBI plot
+        ui->ibiPlot->setArtifactThreshold(dialog.getArtifactThreshold());
     }
 }
 
@@ -733,6 +738,9 @@ void MainWindow::saveSettings()
     // Save whether to show global threshold
     settings.setValue("showthreshold", ui->showGlobalThresholdCheckBox->isChecked());
 
+    // Save artifact detection threshold
+    settings.setValue("artifactThreshold", ui->ibiPlot->getArtifactThreshold() * 100.0);
+
     settings.endGroup();
 }
 
@@ -764,6 +772,10 @@ void MainWindow::loadSettings()
     // Set show global threshold
     ui->ecgPlot->setGlobalThresholdLineVisible(settings.value("showthreshold", true).toBool());
     ui->showGlobalThresholdCheckBox->setChecked(settings.value("showthreshold", true).toBool());
+
+    // Load artifact detection threshold and apply to IBI plot
+    double artifactThresh = settings.value("artifactThreshold", 20.0).toDouble();
+    ui->ibiPlot->setArtifactThreshold(artifactThresh);
 
     settings.endGroup();
 }

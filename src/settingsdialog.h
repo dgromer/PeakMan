@@ -37,6 +37,9 @@ public:
     bool getIncludeStartEnd() const;
     void setIncludeStartEnd(bool include);
 
+    double getArtifactThreshold() const;
+    void setArtifactThreshold(double threshold);
+
 private:
     Ui::SettingsDialog *ui;
 };

@@ -37,6 +37,8 @@ public:
     double getSelectionTimePoint();
     double getReferenceInterval();
     void computeInterbeatIntervals(QLinkedList<QCPItemStraightLine *> peaks);
+    void setArtifactThreshold(double thresholdPercent);
+    double getArtifactThreshold() const;
     void setup(QLinkedList<QCPItemStraightLine *> peaks, bool set_range = true);
     //void update(QLinkedList<QCPItemStraightLine *> peaks);
     void plot(QVector<double> x, QVector<double> y, bool set_range = true);
@@ -71,6 +73,8 @@ private:
     QVector<double> ibi_y;
 
     QCPGraph *artifacts;
+
+    double artifactThreshold;  // Stored as decimal (e.g., 0.2 for 20%)
 };
 
 #endif // IBIPLOT_H

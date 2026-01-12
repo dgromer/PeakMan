@@ -7,13 +7,51 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>150</height>
+    <height>220</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QGroupBox" name="artifactDetectionGroupBox">
+     <property name="title">
+      <string>Artifact Detection</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="thresholdLabel">
+        <property name="text">
+         <string>Threshold (%):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QDoubleSpinBox" name="artifactThresholdSpinBox">
+        <property name="suffix">
+         <string> %</string>
+        </property>
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="minimum">
+         <double>1.0</double>
+        </property>
+        <property name="maximum">
+         <double>100.0</double>
+        </property>
+        <property name="singleStep">
+         <double>1.0</double>
+        </property>
+        <property name="value">
+         <double>20.0</double>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">

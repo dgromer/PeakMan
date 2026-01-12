@@ -28,6 +28,9 @@ IBIPlot::IBIPlot(QWidget *parent) : QCustomPlot(parent)
     ibi = addGraph();
     artifacts = addGraph();
 
+    // Initialize artifact detection threshold (default 20%)
+    artifactThreshold = 0.2;
+
     // Initialize tracer
     selection = new QCPItemTracer(this);
     selection->setStyle(QCPItemTracer::tsCircle);
@@ -103,6 +106,23 @@ double IBIPlot::getSelectionTimePoint()
 double IBIPlot::getReferenceInterval()
 {
     return ibi_y[(int)getSelectionPosX() - 2] / 1000;
+}
+
+void IBIPlot::setArtifactThreshold(double thresholdPercent)
+{
+    // Convert percentage to decimal (e.g., 20.0 -> 0.2)
+    artifactThreshold = thresholdPercent / 100.0;
+
+    // If we have data, re-run detection with new threshold
+    if (!ibi_y.isEmpty())
+    {
+        artifactDetection();
+    }
+}
+
+double IBIPlot::getArtifactThreshold() const
+{
+    return artifactThreshold;
 }
 
 // Compute interbeat intervals from peak positions
@@ -209,7 +229,7 @@ void IBIPlot::artifactDetection()
 
     for (int i = 1; i < ibi_y.size(); i++)
     {
-        if (qAbs(ibi_y[i] - ibi_y[i - 1]) > .2 * ibi_y[i - 1])
+        if (qAbs(ibi_y[i] - ibi_y[i - 1]) > artifactThreshold * ibi_y[i - 1])
         {
             artifacts_x << ibi_x[i];
             artifacts_y << ibi_y[i];

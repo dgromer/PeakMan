@@ -42,3 +42,13 @@ void SettingsDialog::setIncludeStartEnd(bool include)
 {
     ui->includeStartEndCheckBox->setChecked(include);
 }
+
+double SettingsDialog::getArtifactThreshold() const
+{
+    return ui->artifactThresholdSpinBox->value();
+}
+
+void SettingsDialog::setArtifactThreshold(double threshold)
+{
+    ui->artifactThresholdSpinBox->setValue(threshold);
+}

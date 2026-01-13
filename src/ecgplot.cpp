@@ -35,8 +35,13 @@ ECGPlot::ECGPlot(QWidget *parent) : QCustomPlot(parent)
     addLayer("highlight");
 
     // Set axis labels
-    xAxis->setLabel("Time (s)");
+    xAxis->setLabel("Time");
     yAxis->setLabel("Voltage (mV)");
+
+    // Configure x-axis to display time in HH:MM:SS format
+    xAxis->setTickLabelType(QCPAxis::ltDateTime);
+    xAxis->setDateTimeFormat("hh:mm:ss");
+    xAxis->setDateTimeSpec(Qt::UTC);  // Use UTC to avoid timezone conversion
 
     // Activate interactions
     setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iMultiSelect | QCP::iSelectItems);

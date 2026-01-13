@@ -339,7 +339,7 @@ void MainWindow::exportData()
     QString defaultBase = fn.canonicalPath() + QDir::separator() + fn.baseName();
 
     // Show single file dialog to choose base filename
-    QString baseFileName = QFileDialog::getSaveFileName(this, "Export Data", defaultBase);
+    QString baseFileName = QFileDialog::getSaveFileName(this, "Choose base filename for data export", defaultBase);
 
     // Check if dialog was canceled
     if (baseFileName.isEmpty())

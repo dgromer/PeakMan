@@ -349,16 +349,6 @@ void IBIPlot::mouseDoubleClickEvent(QMouseEvent *event)
     }
 }
 
-void IBIPlot::keyPressEvent(QKeyEvent *event)
-{
-    if (event->key() == Qt::Key_I && selection->visible())
-    {
-        emit ibiSelectedInsertMissingPeaks();
-    }
-
-    QCustomPlot::keyPressEvent(event);
-}
-
 // Artifact navigation methods
 int IBIPlot::getArtifactCount() const
 {

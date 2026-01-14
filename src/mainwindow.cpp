@@ -89,12 +89,15 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(artifactNavigateRightShortcut, SIGNAL(activated()), this, SLOT(navigateToArtifactRight()));
     artifactNavigateRightShortcut->setEnabled(false);  // Initially disabled
 
+    insertMissingPeaksShortcut = new QShortcut(QKeySequence(Qt::Key_I), this);
+    connect(insertMissingPeaksShortcut, SIGNAL(activated()), this, SLOT(insertMissingPeaks()));
+    insertMissingPeaksShortcut->setEnabled(false);  // Initially disabled
+
     // Update interbeat intervals automatically when peaks change
     connect(ui->ecgPlot, SIGNAL(peaksChanged()), this, SLOT(setupIbiPlot()));
 
     // Apply correction button and jump to position button
     connect(ui->insertMissingPeaksButton, SIGNAL(clicked()), this, SLOT(insertMissingPeaks()));
-    connect(ui->ibiPlot, SIGNAL(ibiSelectedInsertMissingPeaks()), this, SLOT(insertMissingPeaks()));
     connect(ui->ibiPlot, SIGNAL(ibiSelected(bool)), ui->jumpToSelectionButton, SLOT(setEnabled(bool)));
     connect(ui->ibiPlot, SIGNAL(ibiSelected(bool)), this, SLOT(toggleInsertMissingPeaksButton(bool)));
     connect(ui->jumpToSelectionButton, SIGNAL(clicked()), this, SLOT(jumpToSelection()));
@@ -270,6 +273,7 @@ void MainWindow::closeCurrentFile()
     ui->jumpToSelectionButton->setEnabled(false);
     ui->insertMissingPeaksButton->setEnabled(false);
     ui->insertMissingPeaksButton->setChecked(false);
+    insertMissingPeaksShortcut->setEnabled(false);
 
     // Disable and clear artifact navigation UI
     ui->artifactSelectGroupBox->setEnabled(false);
@@ -544,11 +548,18 @@ void MainWindow::toggleInsertMissingPeaksButton(bool enable)
         if (n > 1)
         {
             ui->insertMissingPeaksButton->setEnabled(true);
+            insertMissingPeaksShortcut->setEnabled(true);
+        }
+        else
+        {
+            ui->insertMissingPeaksButton->setEnabled(false);
+            insertMissingPeaksShortcut->setEnabled(false);
         }
     }
     else
     {
         ui->insertMissingPeaksButton->setEnabled(false);
+        insertMissingPeaksShortcut->setEnabled(false);
     }
 }
 

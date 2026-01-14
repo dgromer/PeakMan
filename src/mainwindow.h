@@ -102,6 +102,7 @@ private:
     QShortcut *peakDetectionShortcut; // Keyboard shortcut (Ctrl+D) for peak detection
     QShortcut *artifactNavigateLeftShortcut;  // Keyboard shortcut (Left Arrow) for previous artifact
     QShortcut *artifactNavigateRightShortcut; // Keyboard shortcut (Right Arrow) for next artifact
+    QShortcut *insertMissingPeaksShortcut;  // Keyboard shortcut (I) for inserting missing peaks
 
     // TODO: REMOVE FROM HERE, IS IN ECGPLOT NOW
 //    QVector<double> ecg_x; // x-axis values for ecg_y (time in seconds)

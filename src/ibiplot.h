@@ -65,13 +65,11 @@ public slots:
 signals:
     void ibiSelected(bool);
     void ibiSelectedDoubleClick();
-    void ibiSelectedInsertMissingPeaks();
     void artifactsChanged();
 
 private slots:
     void mousePressEvent(QMouseEvent *event);
     void mouseDoubleClickEvent(QMouseEvent *event);
-    void keyPressEvent(QKeyEvent *event);
 
 private:
     int findNearestDataPoint(const QPoint &pixelPos) const;

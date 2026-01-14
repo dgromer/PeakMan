@@ -17,7 +17,7 @@
    <item>
     <widget class="QGroupBox" name="artifactDetectionGroupBox">
      <property name="title">
-      <string>Artifact Detection</string>
+      <string>Interbeat Interval Artifact Detection</string>
      </property>
      <layout class="QFormLayout" name="formLayout">
       <item row="0" column="0">
@@ -36,16 +36,16 @@
          <number>1</number>
         </property>
         <property name="minimum">
-         <double>1.0</double>
+         <double>1.000000000000000</double>
         </property>
         <property name="maximum">
-         <double>100.0</double>
+         <double>100.000000000000000</double>
         </property>
         <property name="singleStep">
-         <double>1.0</double>
+         <double>1.000000000000000</double>
         </property>
         <property name="value">
-         <double>20.0</double>
+         <double>20.000000000000000</double>
         </property>
        </widget>
       </item>
@@ -61,7 +61,7 @@
       <item>
        <widget class="QCheckBox" name="includeStartEndCheckBox">
         <property name="text">
-         <string>Include signal start and end when saving IBI</string>
+         <string>Include time before the first and after the last IBI in export</string>
         </property>
         <property name="checked">
          <bool>true</bool>

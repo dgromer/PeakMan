@@ -366,6 +366,9 @@ Selection</string>
            <property name="frame">
             <bool>true</bool>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="clearButtonEnabled">
             <bool>false</bool>
            </property>

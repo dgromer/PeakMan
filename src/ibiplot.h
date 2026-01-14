@@ -49,6 +49,15 @@ public:
 
     QVector<double> getIbi_y();
 
+    // Artifact navigation methods
+    int getArtifactCount() const;
+    QVector<int> getArtifactIndices() const;
+    bool isCurrentSelectionArtifact() const;
+    int getCurrentArtifactNumber() const;
+    void selectArtifact(int artifactListIndex);
+    int findNearestArtifactLeft(int fromIndex) const;
+    int findNearestArtifactRight(int fromIndex) const;
+
 public slots:
     void artifactDetection(); // Search for artifacts in sequence of interbeat intervals
     void resetView();
@@ -57,6 +66,7 @@ signals:
     void ibiSelected(bool);
     void ibiSelectedDoubleClick();
     void ibiSelectedInsertMissingPeaks();
+    void artifactsChanged();
 
 private slots:
     void mousePressEvent(QMouseEvent *event);
@@ -75,6 +85,10 @@ private:
     QCPGraph *artifacts;
 
     double artifactThreshold;  // Stored as decimal (e.g., 0.2 for 20%)
+
+    // Artifact navigation state
+    QVector<int> artifactIndices;  // Indices of artifacts in ibi_x/ibi_y
+    int currentArtifactIndex;  // Current position in artifactIndices (-1 if none)
 };
 
 #endif // IBIPLOT_H

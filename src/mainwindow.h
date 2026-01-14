@@ -71,6 +71,11 @@ private slots:
     void toggleInsertMissingPeaksButton(bool enable);
     void insertMissingPeaks(); // Subdivides an interbeat interval into shorter intervals
 
+    // Artifact navigation slots
+    void navigateToArtifactLeft();
+    void navigateToArtifactRight();
+    void updateArtifactSelectionUI();
+
     void aboutPeakMan();
 
 private:

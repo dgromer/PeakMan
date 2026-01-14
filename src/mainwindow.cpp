@@ -87,6 +87,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->ibiPlot, SIGNAL(ibiSelectedDoubleClick()), this, SLOT(jumpToSelection()));
     connect(ui->resetIbiViewButton, SIGNAL(clicked()), ui->ibiPlot, SLOT(resetView()));
 
+    // Artifact navigation
+    connect(ui->ibiPlot, SIGNAL(artifactsChanged()), this, SLOT(updateArtifactSelectionUI()));
+    connect(ui->ibiPlot, SIGNAL(ibiSelected(bool)), this, SLOT(updateArtifactSelectionUI()));
+    connect(ui->artifactSelectLeftPushButton, SIGNAL(clicked()), this, SLOT(navigateToArtifactLeft()));
+    connect(ui->artifactSelectRightPushButton, SIGNAL(clicked()), this, SLOT(navigateToArtifactRight()));
+    ui->artifactSelectLineEdit->setReadOnly(true);
+
     // Initialize sample rate label
     ui->ecgPlot->setSampleRate(0);
     sampleRateLabel = new QLabel(this);
@@ -537,6 +544,108 @@ void MainWindow::insertMissingPeaks()
     ui->jumpToSelectionButton->setEnabled(false);
     ui->insertMissingPeaksButton->setChecked(false);
     ui->insertMissingPeaksButton->setEnabled(false);
+}
+
+void MainWindow::updateArtifactSelectionUI()
+{
+    int artifactCount = ui->ibiPlot->getArtifactCount();
+
+    // If no artifacts, disable everything
+    if (artifactCount == 0)
+    {
+        ui->artifactSelectGroupBox->setEnabled(false);
+        ui->artifactSelectLineEdit->clear();
+        return;
+    }
+
+    // Enable the group box
+    ui->artifactSelectGroupBox->setEnabled(true);
+
+    int currentArtifactNum = ui->ibiPlot->getCurrentArtifactNumber();
+
+    if (currentArtifactNum != -1)
+    {
+        // An artifact is selected - show "x of y"
+        ui->artifactSelectLineEdit->setText(QString("%1 of %2").arg(currentArtifactNum).arg(artifactCount));
+
+        // Enable/disable navigation buttons based on position
+        ui->artifactSelectLeftPushButton->setEnabled(currentArtifactNum > 1);
+        ui->artifactSelectRightPushButton->setEnabled(currentArtifactNum < artifactCount);
+    }
+    else
+    {
+        // No artifact selected, or non-artifact IBI selected
+        ui->artifactSelectLineEdit->clear();
+
+        // Check if we can navigate from current position
+        // Get current selection index, find if there are artifacts left/right
+        double selectionX = ui->ibiPlot->getSelectionPosX();
+        int selectionIndex = static_cast<int>(selectionX);
+
+        QVector<int> artifactIndices = ui->ibiPlot->getArtifactIndices();
+        bool hasArtifactLeft = false;
+        bool hasArtifactRight = false;
+
+        for (int idx : artifactIndices)
+        {
+            if (idx < selectionIndex) hasArtifactLeft = true;
+            if (idx > selectionIndex) hasArtifactRight = true;
+        }
+
+        ui->artifactSelectLeftPushButton->setEnabled(hasArtifactLeft);
+        ui->artifactSelectRightPushButton->setEnabled(hasArtifactRight);
+    }
+}
+
+void MainWindow::navigateToArtifactLeft()
+{
+    int currentArtifactNum = ui->ibiPlot->getCurrentArtifactNumber();
+
+    if (currentArtifactNum > 1)
+    {
+        // Navigate to previous artifact in list
+        ui->ibiPlot->selectArtifact(currentArtifactNum - 2); // Convert to 0-based
+        jumpToSelection();
+    }
+    else
+    {
+        // Find nearest artifact to the left of current selection
+        double selectionX = ui->ibiPlot->getSelectionPosX();
+        int selectionIndex = static_cast<int>(selectionX);
+        int artifactListIndex = ui->ibiPlot->findNearestArtifactLeft(selectionIndex);
+
+        if (artifactListIndex != -1)
+        {
+            ui->ibiPlot->selectArtifact(artifactListIndex);
+            jumpToSelection();
+        }
+    }
+}
+
+void MainWindow::navigateToArtifactRight()
+{
+    int currentArtifactNum = ui->ibiPlot->getCurrentArtifactNumber();
+    int artifactCount = ui->ibiPlot->getArtifactCount();
+
+    if (currentArtifactNum != -1 && currentArtifactNum < artifactCount)
+    {
+        // Navigate to next artifact in list
+        ui->ibiPlot->selectArtifact(currentArtifactNum); // currentArtifactNum is 1-based, so this gives next (0-based)
+        jumpToSelection();
+    }
+    else
+    {
+        // Find nearest artifact to the right of current selection
+        double selectionX = ui->ibiPlot->getSelectionPosX();
+        int selectionIndex = static_cast<int>(selectionX);
+        int artifactListIndex = ui->ibiPlot->findNearestArtifactRight(selectionIndex);
+
+        if (artifactListIndex != -1)
+        {
+            ui->ibiPlot->selectArtifact(artifactListIndex);
+            jumpToSelection();
+        }
+    }
 }
 
 void MainWindow::aboutPeakMan()

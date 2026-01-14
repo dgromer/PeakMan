@@ -31,6 +31,9 @@ IBIPlot::IBIPlot(QWidget *parent) : QCustomPlot(parent)
     // Initialize artifact detection threshold (default 20%)
     artifactThreshold = 0.2;
 
+    // Initialize artifact navigation state
+    currentArtifactIndex = -1;
+
     // Initialize tracer
     selection = new QCPItemTracer(this);
     selection->setStyle(QCPItemTracer::tsCircle);
@@ -227,16 +230,22 @@ void IBIPlot::artifactDetection()
     QVector<double> artifacts_x;
     QVector<double> artifacts_y;
 
+    // Clear artifact indices list
+    artifactIndices.clear();
+    currentArtifactIndex = -1;
+
     for (int i = 1; i < ibi_y.size(); i++)
     {
         if (qAbs(ibi_y[i] - ibi_y[i - 1]) > artifactThreshold * ibi_y[i - 1])
         {
             artifacts_x << ibi_x[i];
             artifacts_y << ibi_y[i];
+            artifactIndices << i;  // Store the index
         }
     }
 
     plotArtifacts(artifacts_x, artifacts_y);
+    emit artifactsChanged();
 }
 
 int IBIPlot::findNearestDataPoint(const QPoint &pixelPos) const
@@ -292,15 +301,20 @@ void IBIPlot::mousePressEvent(QMouseEvent *event)
                 selection->setGraphKey(ibi_x[nearestIndex]);
                 selection->setVisible(true);
                 bIbiSelected = true;
+
+                // Update currentArtifactIndex if selected point is an artifact
+                currentArtifactIndex = artifactIndices.indexOf(nearestIndex);
             }
             else
             {
                 selection->setVisible(false);
+                currentArtifactIndex = -1;
             }
         }
         else
         {
             selection->setVisible(false);
+            currentArtifactIndex = -1;
         }
 
         replot();
@@ -326,4 +340,105 @@ void IBIPlot::keyPressEvent(QKeyEvent *event)
     }
 
     QCustomPlot::keyPressEvent(event);
+}
+
+// Artifact navigation methods
+int IBIPlot::getArtifactCount() const
+{
+    return artifactIndices.size();
+}
+
+QVector<int> IBIPlot::getArtifactIndices() const
+{
+    return artifactIndices;
+}
+
+bool IBIPlot::isCurrentSelectionArtifact() const
+{
+    if (!selection->visible())
+        return false;
+
+    // Get current selection index
+    double selectionX = selection->graphKey();
+    int selectionIndex = -1;
+
+    // Find the index in ibi_x that matches the selection
+    for (int i = 0; i < ibi_x.size(); ++i)
+    {
+        if (qAbs(ibi_x[i] - selectionX) < 0.001)  // Use small epsilon for floating point comparison
+        {
+            selectionIndex = i;
+            break;
+        }
+    }
+
+    if (selectionIndex == -1)
+        return false;
+
+    // Check if this index is in artifactIndices
+    return artifactIndices.contains(selectionIndex);
+}
+
+int IBIPlot::getCurrentArtifactNumber() const
+{
+    if (currentArtifactIndex == -1)
+        return -1;
+
+    // Return 1-based position
+    return currentArtifactIndex + 1;
+}
+
+void IBIPlot::selectArtifact(int artifactListIndex)
+{
+    // Bounds check
+    if (artifactListIndex < 0 || artifactListIndex >= artifactIndices.size())
+        return;
+
+    // Get the data index from artifactIndices
+    int dataIndex = artifactIndices[artifactListIndex];
+
+    // Bounds check for ibi_x
+    if (dataIndex < 0 || dataIndex >= ibi_x.size())
+        return;
+
+    // Set tracer position
+    selection->setGraphKey(ibi_x[dataIndex]);
+    selection->setVisible(true);
+
+    // Update current artifact index
+    currentArtifactIndex = artifactListIndex;
+
+    // Emit signal
+    emit ibiSelected(true);
+
+    // Redraw
+    replot();
+}
+
+int IBIPlot::findNearestArtifactLeft(int fromIndex) const
+{
+    // Search backward through artifactIndices
+    for (int i = artifactIndices.size() - 1; i >= 0; --i)
+    {
+        if (artifactIndices[i] < fromIndex)
+        {
+            return i;  // Return position in artifact list
+        }
+    }
+
+    return -1;  // No artifact found to the left
+}
+
+int IBIPlot::findNearestArtifactRight(int fromIndex) const
+{
+    // Search forward through artifactIndices
+    for (int i = 0; i < artifactIndices.size(); ++i)
+    {
+        if (artifactIndices[i] > fromIndex)
+        {
+            return i;  // Return position in artifact list
+        }
+    }
+
+    return -1;  // No artifact found to the right
 }

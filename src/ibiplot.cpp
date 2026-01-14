@@ -236,11 +236,28 @@ void IBIPlot::artifactDetection()
 
     for (int i = 1; i < ibi_y.size(); i++)
     {
+        // Check if current IBI differs from previous IBI by more than threshold percentage
         if (qAbs(ibi_y[i] - ibi_y[i - 1]) > artifactThreshold * ibi_y[i - 1])
         {
-            artifacts_x << ibi_x[i];
-            artifacts_y << ibi_y[i];
-            artifactIndices << i;  // Store the index
+            // Would be flagged as artifact - but check if previous IBI is already an artifact
+            // If so, also compare against the second-to-last IBI to avoid false positives
+            if (artifactIndices.contains(i - 1) && i >= 2)
+            {
+                // Previous is an artifact, re-check against second-to-last IBI
+                if (qAbs(ibi_y[i] - ibi_y[i - 2]) > artifactThreshold * ibi_y[i - 2])
+                {
+                    artifacts_x << ibi_x[i];
+                    artifacts_y << ibi_y[i];
+                    artifactIndices << i;  // Store the index
+                }
+            }
+            else
+            {
+                // Previous is NOT an artifact, flag this one
+                artifacts_x << ibi_x[i];
+                artifacts_y << ibi_y[i];
+                artifactIndices << i;  // Store the index
+            }
         }
     }
 

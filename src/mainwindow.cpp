@@ -75,6 +75,11 @@ MainWindow::MainWindow(QWidget *parent) :
     // Peak detection
     connect(ui->detectPeaksButton, SIGNAL(clicked()), this, SLOT(peakDetection()));
 
+    // Create keyboard shortcut for peak detection (Ctrl+D)
+    peakDetectionShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this);
+    connect(peakDetectionShortcut, SIGNAL(activated()), this, SLOT(peakDetection()));
+    peakDetectionShortcut->setEnabled(false);  // Initially disabled like the button
+
     // Update interbeat intervals automatically when peaks change
     connect(ui->ecgPlot, SIGNAL(peaksChanged()), this, SLOT(setupIbiPlot()));
 
@@ -247,6 +252,7 @@ void MainWindow::closeCurrentFile()
 
     // Disable buttons
     ui->detectPeaksButton->setEnabled(false);
+    peakDetectionShortcut->setEnabled(false);
     ui->menuCloseCurrentFile->setEnabled(false);
     ui->menuExportData->setEnabled(false);
 
@@ -734,6 +740,7 @@ void MainWindow::openEcgFile()
 
     // Enable menu entries
     ui->detectPeaksButton->setEnabled(true);
+    peakDetectionShortcut->setEnabled(true);
     ui->menuCloseCurrentFile->setEnabled(true);
 
     ui->statusBar->showMessage("File opened", 2000);

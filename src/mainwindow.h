@@ -21,6 +21,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QShortcut>
 #include "qcustomplot.h"
 #include "ecgplot.h"
 #include "openfiledialog.h"
@@ -97,6 +98,8 @@ private:
     //int sampleRate; // Stores the samplerate in hertz
     QLabel *sampleRateLabel; // Used for displaying the samplerate in the top right corner of the gui
     void updateSampleRateLabel(); // Updates the samplerate label
+
+    QShortcut *peakDetectionShortcut; // Keyboard shortcut (Ctrl+D) for peak detection
 
     // TODO: REMOVE FROM HERE, IS IN ECGPLOT NOW
 //    QVector<double> ecg_x; // x-axis values for ecg_y (time in seconds)

@@ -119,6 +119,15 @@ void MainWindow::horzScrollBarChanged(int value)
 
 void MainWindow::xAxisChanged(QCPRange range)
 {
+  // Dynamically adjust time format based on visible range
+  if (range.size() < 5.0) {
+    // When showing less than 5 seconds, include milliseconds
+    ui->ecgPlot->xAxis->setDateTimeFormat("hh:mm:ss.zzz");
+  } else {
+    // Default format for larger ranges
+    ui->ecgPlot->xAxis->setDateTimeFormat("hh:mm:ss");
+  }
+
   ui->horizontalScrollBar->setValue(qRound(range.center()*100.0)); // adjust position of scroll bar slider
   ui->horizontalScrollBar->setPageStep(qRound(range.size()*100.0)); // adjust size of scroll bar slider
 }

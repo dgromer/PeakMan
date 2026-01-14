@@ -81,11 +81,11 @@ MainWindow::MainWindow(QWidget *parent) :
     peakDetectionShortcut->setEnabled(false);  // Initially disabled like the button
 
     // Create keyboard shortcuts for artifact navigation (Arrow keys)
-    artifactNavigateLeftShortcut = new QShortcut(QKeySequence(Qt::Key_Left), this);
+    artifactNavigateLeftShortcut = new QShortcut(QKeySequence(Qt::Key_P), this);
     connect(artifactNavigateLeftShortcut, SIGNAL(activated()), this, SLOT(navigateToArtifactLeft()));
     artifactNavigateLeftShortcut->setEnabled(false);  // Initially disabled
 
-    artifactNavigateRightShortcut = new QShortcut(QKeySequence(Qt::Key_Right), this);
+    artifactNavigateRightShortcut = new QShortcut(QKeySequence(Qt::Key_N), this);
     connect(artifactNavigateRightShortcut, SIGNAL(activated()), this, SLOT(navigateToArtifactRight()));
     artifactNavigateRightShortcut->setEnabled(false);  // Initially disabled
 

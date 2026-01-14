@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2015 Daniel Gromer
+ * Copyright (C) 2014-2026 Daniel Gromer
  *
  * This file is part of PeakMan.
  *
@@ -660,8 +660,8 @@ void MainWindow::navigateToArtifactRight()
 void MainWindow::aboutPeakMan()
 {
     QMessageBox::about(this, "About PeakMan",
-                       "<p><b>PeakMan</b><br>Version 0.4.0</p>"
-                       "<p>Copyright (C) 2014-2016 Daniel Gromer</p>"
+                       "<p><b>PeakMan</b><br>Version 0.5.0</p>"
+                       "<p>Copyright (C) 2014-2026 Daniel Gromer</p>"
                        "<p><a href='https://github.com/dgromer/PeakMan'>https://github.com/dgromer/PeakMan</a></p>"
                        "<p>This program is licensed to you under the terms of version 3 of the GNU <a href='http://www.gnu.org/licenses/gpl-3.0.txt'>General Public License</a>.");
 }

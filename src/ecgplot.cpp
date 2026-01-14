@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2015 Daniel Gromer
+ * Copyright (C) 2014-2026 Daniel Gromer
  *
  * This file is part of PeakMan.
  *

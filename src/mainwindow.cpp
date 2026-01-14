@@ -80,6 +80,15 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(peakDetectionShortcut, SIGNAL(activated()), this, SLOT(peakDetection()));
     peakDetectionShortcut->setEnabled(false);  // Initially disabled like the button
 
+    // Create keyboard shortcuts for artifact navigation (Arrow keys)
+    artifactNavigateLeftShortcut = new QShortcut(QKeySequence(Qt::Key_Left), this);
+    connect(artifactNavigateLeftShortcut, SIGNAL(activated()), this, SLOT(navigateToArtifactLeft()));
+    artifactNavigateLeftShortcut->setEnabled(false);  // Initially disabled
+
+    artifactNavigateRightShortcut = new QShortcut(QKeySequence(Qt::Key_Right), this);
+    connect(artifactNavigateRightShortcut, SIGNAL(activated()), this, SLOT(navigateToArtifactRight()));
+    artifactNavigateRightShortcut->setEnabled(false);  // Initially disabled
+
     // Update interbeat intervals automatically when peaks change
     connect(ui->ecgPlot, SIGNAL(peaksChanged()), this, SLOT(setupIbiPlot()));
 
@@ -569,6 +578,8 @@ void MainWindow::updateArtifactSelectionUI()
     if (artifactCount == 0)
     {
         ui->artifactSelectGroupBox->setEnabled(false);
+        artifactNavigateLeftShortcut->setEnabled(false);
+        artifactNavigateRightShortcut->setEnabled(false);
         ui->artifactSelectLineEdit->clear();
         return;
     }
@@ -585,7 +596,9 @@ void MainWindow::updateArtifactSelectionUI()
 
         // Enable/disable navigation buttons based on position
         ui->artifactSelectLeftPushButton->setEnabled(currentArtifactNum > 1);
+        artifactNavigateLeftShortcut->setEnabled(currentArtifactNum > 1);
         ui->artifactSelectRightPushButton->setEnabled(currentArtifactNum < artifactCount);
+        artifactNavigateRightShortcut->setEnabled(currentArtifactNum < artifactCount);
     }
     else
     {
@@ -608,7 +621,9 @@ void MainWindow::updateArtifactSelectionUI()
         }
 
         ui->artifactSelectLeftPushButton->setEnabled(hasArtifactLeft);
+        artifactNavigateLeftShortcut->setEnabled(hasArtifactLeft);
         ui->artifactSelectRightPushButton->setEnabled(hasArtifactRight);
+        artifactNavigateRightShortcut->setEnabled(hasArtifactRight);
     }
 }
 

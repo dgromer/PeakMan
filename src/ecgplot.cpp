@@ -18,6 +18,7 @@
  */
 
 #include "ecgplot.h"
+#include <cmath>
 
 ECGPlot::ECGPlot(QWidget *parent) : QCustomPlot(parent)
 {
@@ -38,10 +39,11 @@ ECGPlot::ECGPlot(QWidget *parent) : QCustomPlot(parent)
     xAxis->setLabel("Time");
     yAxis->setLabel("Voltage (mV)");
 
-    // Configure x-axis to display time in HH:MM:SS format
-    xAxis->setTickLabelType(QCPAxis::ltDateTime);
-    xAxis->setDateTimeFormat("hh:mm:ss");
-    xAxis->setDateTimeSpec(Qt::UTC);  // Use UTC to avoid timezone conversion
+    // Configure x-axis to use custom time formatting (handles negative values)
+    xAxis->setTickLabelType(QCPAxis::ltNumber);
+    xAxis->setAutoTickLabels(false);
+    connect(xAxis, SIGNAL(ticksRequest()), this, SLOT(generateTimeTickLabels()));
+    mTimeFormat = "hh:mm:ss";
 
     // Activate interactions
     setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iMultiSelect | QCP::iSelectItems);
@@ -499,5 +501,53 @@ int ECGPlot::getSampleRate() const
 void ECGPlot::setSampleRate(int value)
 {
     sampleRate = value;
+}
+
+void ECGPlot::setTimeFormat(const QString &format)
+{
+    mTimeFormat = format;
+}
+
+QString ECGPlot::formatTimeValue(double seconds) const
+{
+    bool isNegative = (seconds < 0);
+    double absSeconds = qAbs(seconds);
+
+    int hours = static_cast<int>(absSeconds / 3600);
+    int minutes = static_cast<int>(fmod(absSeconds, 3600) / 60);
+    int secs = static_cast<int>(fmod(absSeconds, 60));
+    int msecs = static_cast<int>(fmod(absSeconds * 1000, 1000));
+
+    QString result;
+    if (mTimeFormat.contains("zzz")) {
+        result = QString("%1:%2:%3.%4")
+            .arg(hours, 2, 10, QChar('0'))
+            .arg(minutes, 2, 10, QChar('0'))
+            .arg(secs, 2, 10, QChar('0'))
+            .arg(msecs, 3, 10, QChar('0'));
+    } else {
+        result = QString("%1:%2:%3")
+            .arg(hours, 2, 10, QChar('0'))
+            .arg(minutes, 2, 10, QChar('0'))
+            .arg(secs, 2, 10, QChar('0'));
+    }
+
+    if (isNegative) {
+        result.prepend("-");
+    }
+
+    return result;
+}
+
+void ECGPlot::generateTimeTickLabels()
+{
+    QVector<double> ticks = xAxis->tickVector();
+    QVector<QString> labels(ticks.size());
+
+    for (int i = 0; i < ticks.size(); ++i) {
+        labels[i] = formatTimeValue(ticks.at(i));
+    }
+
+    xAxis->setTickVectorLabels(labels);
 }
 

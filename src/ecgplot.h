@@ -65,6 +65,7 @@ signals:
 public slots:
     void updateGlobalThresholdLine(int y);
     void setGlobalThresholdLineVisible(bool visible);
+    void setTimeFormat(const QString &format);
 
 private slots:
     void mousePressEvent(QMouseEvent *event);
@@ -74,11 +75,16 @@ private slots:
     void keyPressEvent(QKeyEvent *event);
 
     void highlightTimerUpdate();
+    void generateTimeTickLabels();
 
 private:
+    QString formatTimeValue(double seconds) const;
+
     QCPGraph *ecg;
     QVector<double> ecg_x;
     QVector<double> ecg_y;
+
+    QString mTimeFormat;
 
     int sampleRate;
 

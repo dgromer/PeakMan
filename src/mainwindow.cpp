@@ -265,6 +265,20 @@ void MainWindow::closeCurrentFile()
     ui->menuCloseCurrentFile->setEnabled(false);
     ui->menuExportData->setEnabled(false);
 
+    // Disable IBI-related buttons
+    ui->resetIbiViewButton->setEnabled(false);
+    ui->jumpToSelectionButton->setEnabled(false);
+    ui->insertMissingPeaksButton->setEnabled(false);
+    ui->insertMissingPeaksButton->setChecked(false);
+
+    // Disable and clear artifact navigation UI
+    ui->artifactSelectGroupBox->setEnabled(false);
+    ui->artifactSelectLineEdit->clear();
+    ui->artifactSelectLeftPushButton->setEnabled(false);
+    ui->artifactSelectRightPushButton->setEnabled(false);
+    artifactNavigateLeftShortcut->setEnabled(false);
+    artifactNavigateRightShortcut->setEnabled(false);
+
     openFileName = "";
 }
 

@@ -180,6 +180,13 @@ void IBIPlot::clear()
     ibi_y.clear();
 
     clearArtifacts();
+
+    // Reset artifact navigation state
+    artifactIndices.clear();
+    currentArtifactIndex = -1;
+
+    // Reset tracer position and unset it
+    selection->setGraphKey(0);
     unsetTracer();
 
     replot();

@@ -260,6 +260,10 @@ void MainWindow::closeCurrentFile()
     ui->ecgPlot->clear();
     ui->ibiPlot->clear();
 
+    // Reset plot views to default axis ranges
+    ui->ecgPlot->resetView();
+    ui->ibiPlot->resetView();
+
     // Reset scrollbars
     ui->horizontalScrollBarIbiPlot->setRange(0, 100);  // Default range
 

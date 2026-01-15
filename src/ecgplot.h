@@ -66,6 +66,7 @@ public slots:
     void updateGlobalThresholdLine(int y);
     void setGlobalThresholdLineVisible(bool visible);
     void setTimeFormat(const QString &format);
+    void resetView();
 
 private slots:
     void mousePressEvent(QMouseEvent *event);

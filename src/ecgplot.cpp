@@ -107,6 +107,15 @@ void ECGPlot::clear()
     replot();
 }
 
+void ECGPlot::resetView()
+{
+    // Reset to default axis ranges established in MainWindow constructor
+    xAxis->setRange(-0.5, 20);
+    yAxis->setRange(-1000, 3000);
+
+    replot();
+}
+
 void ECGPlot::peakdet(double local_threshold, double global_threshold, double minrrinterval)
 {
     // Remove already detected peaks

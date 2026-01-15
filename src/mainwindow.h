@@ -87,6 +87,7 @@ private:
     void openEcgFile(); // Read a text file with ecg data
     void openPeaksFile();
     void openIbiFile();
+    void checkAndOfferPeaksFile(const QString &ecgFileName);
 
     bool exportPeaksToFile(const QString &filename);
     bool exportIbiToFile(const QString &filename, bool includeStartEnd);

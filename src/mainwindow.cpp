@@ -23,6 +23,7 @@
 #include <QMessageBox>
 #include <QFile>
 #include <QFileInfo>
+#include <QDir>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -783,6 +784,9 @@ void MainWindow::openEcgFile()
     peakDetectionShortcut->setEnabled(true);
     ui->menuCloseCurrentFile->setEnabled(true);
 
+    // Check for existing peaks file and offer to load it
+    checkAndOfferPeaksFile(openFileName);
+
     ui->statusBar->showMessage("File opened", 2000);
 }
 
@@ -838,6 +842,51 @@ void MainWindow::openPeaksFile()
 void MainWindow::openIbiFile()
 {
 
+}
+
+void MainWindow::checkAndOfferPeaksFile(const QString &ecgFileName)
+{
+    // Construct expected peaks filename based on export naming convention
+    QFileInfo ecgFileInfo(ecgFileName);
+    QString peaksFileName = ecgFileInfo.canonicalPath() + QDir::separator() +
+                            ecgFileInfo.baseName() + "_peaks.txt";
+
+    // Check if peaks file exists
+    if (!QFile::exists(peaksFileName))
+    {
+        return; // No peaks file found, nothing to do
+    }
+
+    // Extract just the filename for display (not full path)
+    QFileInfo peaksFileInfo(peaksFileName);
+    QString displayName = peaksFileInfo.fileName();
+
+    // Prompt user to load peaks file
+    QMessageBox msgBox(QMessageBox::Question,
+                      "Load Peaks File?",
+                      QString("A peaks file was found (%1).<br><br>Would you like to load it?")
+                          .arg(displayName),
+                      QMessageBox::Yes | QMessageBox::No,
+                      this);
+    msgBox.setTextFormat(Qt::RichText);
+
+    QMessageBox::StandardButton reply =
+        (QMessageBox::StandardButton)msgBox.exec();
+
+    if (reply == QMessageBox::Yes)
+    {
+        // Save current ECG filename
+        QString savedEcgFileName = openFileName;
+
+        // Temporarily set openFileName to peaks file for openPeaksFile()
+        openFileName = peaksFileName;
+
+        // Load the peaks file
+        openPeaksFile();
+
+        // Restore original ECG filename
+        openFileName = savedEcgFileName;
+    }
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *event)

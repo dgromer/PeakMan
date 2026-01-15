@@ -246,11 +246,11 @@ void MainWindow::zoomIbiOut()
 void MainWindow::getFileName()
 {
     // Get filename via input dialog
-    openFileName = QFileDialog::getOpenFileName(this, tr("Open File"), QDir::currentPath(), tr("Text Files (*.txt)"));
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QDir::currentPath(), tr("Text Files (*.txt)"));
 
-    if (openFileName != "")
+    if (!fileName.isEmpty())
     {
-        execOpenFileDialog();
+        execOpenFileDialog(fileName);
     }
 }
 
@@ -713,9 +713,9 @@ void MainWindow::aboutPeakMan()
                        "<p>This program is licensed to you under the terms of version 3 of the GNU <a href='http://www.gnu.org/licenses/gpl-3.0.txt'>General Public License</a>.");
 }
 
-void MainWindow::execOpenFileDialog()
+void MainWindow::execOpenFileDialog(const QString &fileName)
 {
-    OpenFileDialog dialog(this, openFileName, ui->ecgPlot->getSampleRate());
+    OpenFileDialog dialog(this, fileName, ui->ecgPlot->getSampleRate());
     dialog.exec();
 
     if (dialog.result() == QDialog::Accepted)
@@ -726,11 +726,11 @@ void MainWindow::execOpenFileDialog()
 
         if (dialog.getRadioButtonPushed() == "ecgsignal")
         {
-            openEcgFile();
+            openEcgFile(fileName);
         }
         else if (dialog.getRadioButtonPushed() == "peaks")
         {
-            openPeaksFile();
+            openPeaksFile(fileName);
         }
         else if (dialog.getRadioButtonPushed() == "ibi")
         {
@@ -739,14 +739,14 @@ void MainWindow::execOpenFileDialog()
     }
 }
 
-void MainWindow::openEcgFile()
+void MainWindow::openEcgFile(const QString &fileName)
 {
     // If there's already an open file, close it before opening the new one
     if (!ui->ecgPlot->getEcg_y().isEmpty()) closeCurrentFile();
 
     ui->statusBar->showMessage("Opening file ...");
 
-    QFile file(openFileName);
+    QFile file(fileName);
 
     // Open file
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
@@ -776,6 +776,9 @@ void MainWindow::openEcgFile()
     // Plot ecg signal
     ui->ecgPlot->plot(ecg_x, ecg_y);
 
+    // Store the successfully opened filename
+    openFileName = fileName;
+
     // Adjust size of horizontal scrollbar
     ui->horizontalScrollBar->setRange(0, ecg_x.last() * 100);
 
@@ -785,12 +788,12 @@ void MainWindow::openEcgFile()
     ui->menuCloseCurrentFile->setEnabled(true);
 
     // Check for existing peaks file and offer to load it
-    checkAndOfferPeaksFile(openFileName);
+    checkAndOfferPeaksFile(fileName);
 
     ui->statusBar->showMessage("File opened", 2000);
 }
 
-void MainWindow::openPeaksFile()
+void MainWindow::openPeaksFile(const QString &fileName)
 {
     if (ui->ecgPlot->getEcg_y().isEmpty())
     {
@@ -805,7 +808,7 @@ void MainWindow::openPeaksFile()
 
     ui->statusBar->showMessage("Opening file ...");
 
-    QFile file(openFileName);
+    QFile file(fileName);
 
     // Open file
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
@@ -875,17 +878,8 @@ void MainWindow::checkAndOfferPeaksFile(const QString &ecgFileName)
 
     if (reply == QMessageBox::Yes)
     {
-        // Save current ECG filename
-        QString savedEcgFileName = openFileName;
-
-        // Temporarily set openFileName to peaks file for openPeaksFile()
-        openFileName = peaksFileName;
-
         // Load the peaks file
-        openPeaksFile();
-
-        // Restore original ECG filename
-        openFileName = savedEcgFileName;
+        openPeaksFile(peaksFileName);
     }
 }
 
@@ -915,9 +909,8 @@ void MainWindow::dropEvent(QDropEvent *event)
         return;
     }
 
-    openFileName = in.absoluteFilePath();
-
-    execOpenFileDialog();
+    QString fileName = in.absoluteFilePath();
+    execOpenFileDialog(fileName);
 }
 
 void MainWindow::updateSampleRateLabel()

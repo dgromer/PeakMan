@@ -83,9 +83,9 @@ private:
     Ui::MainWindow *ui;
 
     QString openFileName;
-    void execOpenFileDialog(); // Display a dialog for file opening
-    void openEcgFile(); // Read a text file with ecg data
-    void openPeaksFile();
+    void execOpenFileDialog(const QString &fileName); // Display a dialog for file opening
+    void openEcgFile(const QString &fileName); // Read a text file with ecg data
+    void openPeaksFile(const QString &fileName);
     void openIbiFile();
     void checkAndOfferPeaksFile(const QString &ecgFileName);
 

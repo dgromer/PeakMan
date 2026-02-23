@@ -289,6 +289,9 @@ void MainWindow::closeCurrentFile()
     artifactNavigateRightShortcut->setEnabled(false);
 
     openFileName = "";
+
+    // Reset window title to default
+    setWindowTitle("PeakMan");
 }
 
 bool MainWindow::exportPeaksToFile(const QString &filename)
@@ -782,6 +785,10 @@ void MainWindow::openEcgFile(const QString &fileName)
 
     // Store the successfully opened filename
     openFileName = fileName;
+
+    // Update window title with filename
+    QFileInfo fileInfo(openFileName);
+    setWindowTitle("PeakMan - " + fileInfo.fileName());
 
     // Adjust size of horizontal scrollbar
     ui->horizontalScrollBar->setRange(0, ecg_x.last() * 100);
